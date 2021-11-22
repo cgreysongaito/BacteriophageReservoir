@@ -1,0 +1,5 @@
+*.mm
+doc/
+*.docx
+*.odt
+*.pdf
