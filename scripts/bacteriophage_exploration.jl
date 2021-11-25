@@ -10,7 +10,7 @@ end #function to create a absolute path as a character string
 @with_kw mutable struct BacPhagePar
     r = 0.01
     s = 0.1
-    l = 0.01
+    b = 0.01
 end
 
 function bacphage!(du, u, p, t,)
@@ -29,7 +29,7 @@ end
 ## Symbolic analysis
 @vars C
 
-@vars r s l
+@vars r s b
 
 # Without lysogeny
 f(C) = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C )
@@ -37,35 +37,43 @@ f(C) = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C )
 SymPy.solve(f(C), C)
 
 # With lysogeny
-g(C) = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + l * ( 1 - C )
+g(C) = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
 
 SymPy.solve(g(C), C)
 
 # With lysogeny - assuming r is tiny (0)
-h(C) = ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + l * ( 1 - C )
+h(C) = ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
 
 SymPy.solve(h(C), C)
 
-# Stability when s is positive and when negative - identify bifurcation as change s from positive to negative - intuitively there should be a bifurcation because selection will push out gene (if strong enough)
+SymPy.simplify(diff(h(C),C))
 
+SymPy.simplify(( 1 * s^2 * (1 - 1)  - b * (1 * s + 1)^2  + s * (1 - 2 * 1) * (1 * s + 1)) / (1 * s + 1)^2 )
+
+
+SymPy.simplify(( (-b/(s*(b + 1))) * s^2 * ((-b/(s*(b + 1))) - 1)  - b * ((-b/(s*(b + 1))) * s + 1)^2  + s * (1 - 2 * (-b/(s*(b + 1))))*((-b/(s*(b + 1))) * s + 1)) / ((-b/(s*(b + 1)))*s + 1)^2)
+
+# Stability when s is positive and when negative - identify bifurcation as change s from positive to negative - intuitively there should be a bifurcation because selection will push out gene (if strong enough)
+#C*=1 stable when s > -b/(b+1)
+#C*= -b/(s*(b + 1)) stable when s < -b/(b+1)
 
 ## Geometric analysis
 # With lysogeny - assuming r is tiny (0)
 #### CHECK what type of function/graph is similar
 # take limit of s to zero to see how figure changes shape
 function selec(C, p)
-    @unpack s, l = p
+    @unpack s = p
     return ( s / ( 1 + s * C ) ) * C * ( 1 - C )
 end 
 
 function lyso(C, p)
-    @unpack l = p
-    return l * ( 1 - C )
+    @unpack b = p
+    return b * ( 1 - C )
 end
 
 function fullmodel(C, p)
-    @unpack s, l = p
-    return ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + l * ( 1 - C )
+    @unpack s, b = p
+    return ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
 end
 
 let
@@ -88,19 +96,20 @@ let
 end
 
 function equil(s, p)
-    @unpack l = p
-    return -l / (s * ( 1 + l ) )
+    @unpack b = p
+    return -b / (s * ( 1 + b ) )
 end
 
 let 
-    srange = -5.0:0.01:5.0
+    srange = -5.0:0.001:5.0
     datas = [equil(s, BacPhagePar()) for s in srange]
     testeq = figure()
     plot(srange, datas)
-    ylim(-1.0,1.0)
+    ylim(-10.0,10.0)
     return testeq
 end
 
+#If C* can go to infinity but we are bounded (proportion), how do we deal with bounds?
 
 function simpeq(x)
     return 1 / (1 +x)
@@ -121,6 +130,9 @@ let
     plot(xrange, data)
     return test
 end
+
+
+
 # Time series analysis
 
 
@@ -132,3 +144,4 @@ end
 # White noise to red noise (selection)
 # sine wave for selection
 #investigate when r and s and l are really small
+#slow fast analysis (with selection being much slower than growth rates of bacteria)
