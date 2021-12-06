@@ -36,10 +36,40 @@ f(C) = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C )
 
 SymPy.solve(f(C), C)
 
+SymPy.simplify(diff(f(C),C))
+
+SymPy.simplify((( 0 * s^2 * (0 - 1) + r * (1 - 2 * 0) * (0 * s + 1)^2 + s * (1 - 2 * 0) * (0 * s + 1) ) ) / (0 * s + 1)^2)
+# 0 equilibrium stable when s <-r
+SymPy.simplify((( 1 * s^2 * (1 - 1) + r * (1 - 2 * 1) * (1 * s + 1)^2 + s * (1 - 2 * 1) * (1 * s + 1) ) ) / (1 * s + 1)^2)
+# 1 equilibrium stable when s> -r / (r+1)
+SymPy.simplify((( (-(r + s)/(r*s)) * s^2 * ((-(r + s)/(r*s)) - 1) + r * (1 - 2 * (-(r + s)/(r*s))) * ((-(r + s)/(r*s)) * s + 1)^2 + s * (1 - 2 * (-(r + s)/(r*s))) * ((-(r + s)/(r*s)) * s + 1) ) ) / ((-(r + s)/(r*s)) * s + 1)^2)
+SymPy.solve(SymPy.simplify((( (-(r + s)/(r*s)) * s^2 * ((-(r + s)/(r*s)) - 1) + r * (1 - 2 * (-(r + s)/(r*s))) * ((-(r + s)/(r*s)) * s + 1)^2 + s * (1 - 2 * (-(r + s)/(r*s))) * ((-(r + s)/(r*s)) * s + 1) ) ) / ((-(r + s)/(r*s)) * s + 1)^2),s)
+
+
+(( C * s^2 * (C - 1) + r * (1 - 2 * C) * (C * s + 1)^2 + s * (1 - 2 * C) * (C * s + 1) ) ) / (C * s + 1)^2
+
 # With lysogeny
 g(C) = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
 
 SymPy.solve(g(C), C)
+
+SymPy.simplify(diff(g(C),C))
+
+SymPy.simplify(- ((1^2 * s^2) / (1 * s + 1)^2 ) - 2 * 1 * r - ((2 * 1 * s ) / (1 * s + 1)^2) - b + r + (s / (1 * s + 1)^2 ))
+
+SymPy.solve(SymPy.simplify(- ((1^2 * s^2) / (1 * s + 1)^2 ) - 2 * 1 * r - ((2 * 1 * s ) / (1 * s + 1)^2) - b + r + (s / (1 * s + 1)^2 )), s)
+# equilibrium at 1 is stable when s >-(b+r)/(b+r+1)
+
+function equilr(p)
+    @unpack b, s, r = p
+    eq1 = -(b*s + r + s - sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s)
+    eq2 = -(b*s + r + s + sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s)
+    return [eq1, eq2]
+end
+
+equilr(BacPhagePar(s = -5))
+
+- ((C^2 * s^2) / (C * s + 1)^2 ) - 2 * C * r - ((2 * C * s ) / (C * s + 1)^2) - b + r + (s / (C * s + 1)^2 )
 
 # With lysogeny - assuming r is tiny (0)
 h(C) = ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
@@ -58,6 +88,21 @@ SymPy.simplify(( (-b/(s*(b + 1))) * s^2 * ((-b/(s*(b + 1))) - 1)  - b * ((-b/(s*
 #C*= -b/(s*(b + 1)) stable when s < -b/(b+1)
 
 ## Geometric analysis
+# Without lysogeny
+function modelwol(C,p)
+    @unpack s, r = p
+    return r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C )
+end
+
+let
+    Crange = 0.0:0.0001:1.0
+    datafull = [modelwol(C, BacPhagePar(s = -0.02)) for C in Crange]
+    testfull = figure()
+    plot(Crange, datafull)
+    #hlines(0.0, -5.0, 5.0)
+    return testfull
+end
+
 # With lysogeny - assuming r is tiny (0)
 #### CHECK what type of function/graph is similar
 # take limit of s to zero to see how figure changes shape
@@ -132,6 +177,21 @@ let
 end
 
 
+# with lysogeny but with r
+
+function fullmodelr(C, p)
+    @unpack s, r, b = p
+    return r * C * ( 1 - C ) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
+end
+
+let
+    Crange = 0.0:0.000001:1.0
+    datafull = [fullmodelr(C, BacPhagePar(s = -0.5)) for C in Crange]
+    testfull = figure()
+    plot(Crange, datafull)
+    hlines(0.0, 0.0, 1.0)
+    return testfull
+end
 
 # Time series analysis
 
