@@ -67,10 +67,14 @@ function equilr(p)
     return [eq1, eq2]
 end
 
-equilr(BacPhagePar(s = -5))
+equilr(BacPhagePar(s = -0.5))
 
 - ((C^2 * s^2) / (C * s + 1)^2 ) - 2 * C * r - ((2 * C * s ) / (C * s + 1)^2) - b + r + (s / (C * s + 1)^2 )
+(-b * s - r - s)^2
 
+SymPy.solve(s+2,s)
+SymPy.solve(-(b*s + r + s - sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s),s)
+SymPy.solve(-(b*s + r + s + sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s),s)
 # With lysogeny - assuming r is tiny (0)
 h(C) = ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
 
@@ -185,8 +189,8 @@ function fullmodelr(C, p)
 end
 
 let
-    Crange = 0.0:0.000001:1.0
-    datafull = [fullmodelr(C, BacPhagePar(s = -0.5)) for C in Crange]
+    Crange = -100:0.1:1.0
+    datafull = [fullmodelr(C, BacPhagePar(s = -0.0005)) for C in Crange]
     testfull = figure()
     plot(Crange, datafull)
     hlines(0.0, 0.0, 1.0)
