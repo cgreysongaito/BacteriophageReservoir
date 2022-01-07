@@ -8,7 +8,7 @@ function abpath()
 end #function to create a absolute path as a character string
 
 @with_kw mutable struct BacPhagePar
-    r = 0.01
+    r = 0.1
     s = 0.1
     b = 0.01
 end
@@ -47,6 +47,54 @@ SymPy.solve(SymPy.simplify((( (-(r + s)/(r*s)) * s^2 * ((-(r + s)/(r*s)) - 1) + 
 
 
 (( C * s^2 * (C - 1) + r * (1 - 2 * C) * (C * s + 1)^2 + s * (1 - 2 * C) * (C * s + 1) ) ) / (C * s + 1)^2
+
+function modelwol(C,p)
+    @unpack s, r = p
+    return r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C )
+end
+
+let
+    Crange = 0.0:0.0001:1.0
+    data1 = [modelwol(C, BacPhagePar(s = -0.12)) for C in Crange]
+    data2 = [modelwol(C, BacPhagePar(s = -0.0991)) for C in Crange]
+    data3 = [modelwol(C, BacPhagePar(s = -0.08)) for C in Crange]
+    testfull = figure(figsize=(8,2.5))
+    subplot(1,3,1)
+    plot(Crange, data1)
+    ylabel("dC/dt")
+    hlines(0.0, 0.0, 1.0, colors= "black")
+    subplot(1,3,2)
+    plot(Crange, data2)
+    hlines(0.0, 0.0, 1.0, colors= "black")
+    xlabel("C")
+    subplot(1,3,3)
+    plot(Crange, data3)
+    hlines(0.0, 0.0, 1.0, colors= "black")
+    tight_layout()
+    # return testfull
+    savefig(joinpath(abpath(), "figs/withoutlysogeny.png"))
+end
+
+function bifurcwol(s, p)
+    @unpack r = p
+    return -( r + s ) / (r*s)
+end
+
+let
+    st = -1.0
+    en = 1.0 
+    srange = st:0.0001:en
+    data = [bifurcwol(s, BacPhagePar()) for s in srange]
+    bifurcplot = figure(figsize=(8,2.5))
+    plot(srange, data)
+    ylabel("Ĉ")
+    xlabel("s")
+    yaxis(-1, 1) #change coords
+    hlines(0.0, st, en, colors= "black")
+    hlines(1.0, st, en, colors= "black")
+    return bifurcplot
+    # savefig(joinpath(abpath(), "figs/withoutlysogeny.png"))
+end
 
 # With lysogeny
 g(C) = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
@@ -93,33 +141,11 @@ SymPy.simplify(( (-b/(s*(b + 1))) * s^2 * ((-b/(s*(b + 1))) - 1)  - b * ((-b/(s*
 
 ## Geometric analysis
 # Without lysogeny
-function modelwol(C,p)
-    @unpack s, r = p
-    return r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C )
-end
 
-let
-    Crange = 0.0:0.0001:1.0
-    datafull = [modelwol(C, BacPhagePar(s = -0.02)) for C in Crange]
-    testfull = figure()
-    plot(Crange, datafull)
-    #hlines(0.0, -5.0, 5.0)
-    return testfull
-end
 
 # With lysogeny - assuming r is tiny (0)
 #### CHECK what type of function/graph is similar
 # take limit of s to zero to see how figure changes shape
-function selec(C, p)
-    @unpack s = p
-    return ( s / ( 1 + s * C ) ) * C * ( 1 - C )
-end 
-
-function lyso(C, p)
-    @unpack b = p
-    return b * ( 1 - C )
-end
-
 function fullmodel(C, p)
     @unpack s, b = p
     return ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
@@ -127,21 +153,54 @@ end
 
 let
     Crange = 0.0:0.01:1.0
-    datasel = [selec(C, BacPhagePar(s = 0.018)) for C in Crange]
-    datal = [lyso(C, BacPhagePar(s = 0.00018)) for C in Crange]
-    test = figure()
-    plot(Crange, datasel)
-    plot(Crange, datal)
-    return test
+    data1 = [fullmodel(C, BacPhagePar(s = -1.1)) for C in Crange]
+    data2 = [fullmodel(C, BacPhagePar(s = -0.01)) for C in Crange]
+    data3 = [fullmodel(C, BacPhagePar(s = -0.0099)) for C in Crange]
+    data4 = [fullmodel(C, BacPhagePar(s = 0.001)) for C in Crange]
+    testfull = figure(figsize=(8,8))
+    subplot(2,2,1)
+    plot(Crange, data1)
+    hlines(0.0, 0.0, 1.0, colors="black")
+    ylabel("dC/dt")
+    xlabel("C")
+    subplot(2,2,2)
+    plot(Crange, data2)
+    xlabel("C")
+    hlines(0.0, 0.0, 1.0, colors="black")
+    subplot(2,2,3)
+    plot(Crange, data3)
+    xlabel("C")
+    ylabel("dC/dt")
+    hlines(0.0, 0.0, 1.0, colors="black")
+    subplot(2,2,4)
+    plot(Crange, data4)
+    xlabel("C")
+    hlines(0.0, 0.0, 1.0, colors="black")
+    tight_layout()
+    # return testfull
+    savefig(joinpath(abpath(), "figs/withlysogenyrzero.png"))
 end
 
 let
-    Crange = -100.0:0.01:5.0
-    datafull = [fullmodel(C, BacPhagePar(s = 0.001)) for C in Crange]
-    testfull = figure()
-    plot(Crange, datafull)
-    hlines(0.0, -5.0, 5.0)
-    return testfull
+    Crange = -5.0:0.01:5.0
+    data1 = [fullmodel(C, BacPhagePar(s = -1.1)) for C in Crange]
+    data2 = [fullmodel(C, BacPhagePar(s = -0.01)) for C in Crange]
+    data3 = [fullmodel(C, BacPhagePar(s = 1)) for C in Crange]
+    testfull = figure(figsize=(8,3))
+    subplot(1,3,1)
+    plot(Crange, data1)
+    ylabel("dC/dt")
+    xlabel("C")
+    subplot(1,3,2)
+    plot(Crange, data2)
+    xlabel("C")
+    subplot(1,3,3)
+    plot(Crange, data3)
+    xlabel("C")
+    ylabel("dC/dt")
+    tight_layout()
+    # return testfull
+    savefig(joinpath(abpath(), "figs/withlysogenyrzero_generalgraph.png"))
 end
 
 function equil(s, p)
@@ -189,12 +248,70 @@ function fullmodelr(C, p)
 end
 
 let
-    Crange = -100:0.1:1.0
-    datafull = [fullmodelr(C, BacPhagePar(s = -0.0005)) for C in Crange]
-    testfull = figure()
-    plot(Crange, datafull)
-    hlines(0.0, 0.0, 1.0)
-    return testfull
+    Crange = 0.0:0.01:1.0
+    data1 = [fullmodelr(C, BacPhagePar(s = -1.1)) for C in Crange]
+    data2 = [fullmodelr(C, BacPhagePar(s = -0.3)) for C in Crange]
+    data3 = [fullmodelr(C, BacPhagePar(s = -0.01)) for C in Crange]
+    testfull = figure(figsize=(8,3))
+    subplot(1,3,1)
+    plot(Crange, data1)
+    hlines(0.0, 0.0, 1.0, colors="black")
+    ylabel("dC/dt")
+    xlabel("C")
+    subplot(1,3,2)
+    plot(Crange, data2)
+    ylabel("dC/dt")
+    xlabel("C")
+    hlines(0.0, 0.0, 1.0, colors="black")
+    subplot(1,3,3)
+    plot(Crange, data3)
+    xlabel("C")
+    ylabel("dC/dt")
+    hlines(0.0, 0.0, 1.0, colors="black")
+    tight_layout()
+    # return testfull
+    savefig(joinpath(abpath(), "figs/withlysogeny.png"))
+end
+
+let
+    Crange = -5.0:0.01:5.0
+    data1 = [fullmodelr(C, BacPhagePar(s = -1.1)) for C in Crange]
+    data2 = [fullmodelr(C, BacPhagePar(s = -0.01)) for C in Crange]
+    data3 = [fullmodelr(C, BacPhagePar(s = 0.5)) for C in Crange]
+    testfull = figure(figsize=(8,3))
+    subplot(1,3,1)
+    plot(Crange, data1)
+    ylabel("dC/dt")
+    xlabel("C")
+    subplot(1,3,2)
+    plot(Crange, data2)
+    ylabel("dC/dt")
+    xlabel("C")
+    subplot(1,3,3)
+    plot(Crange, data3)
+    xlabel("C")
+    ylabel("dC/dt")
+    tight_layout()
+    # return testfull
+    savefig(joinpath(abpath(), "figs/withlysogeny_generalgraph.png"))
+end
+
+#Horizontal Gene Transfer
+
+function hgt(C, p)
+    @unpack r, b = p
+    return 100 * (r * C * ( 1 - C) + b * (1 - C))
+end
+
+let
+    Crange = 0.0:0.01:1.0
+    data1 = [hgt(C, BacPhagePar()) for C in Crange]
+    test = figure()
+    plot(Crange, data1)
+    ylabel("HGT")
+    xlabel("C")
+    # return test
+    savefig(joinpath(abpath(), "figs/HGT.png"))
 end
 
 # Time series analysis
@@ -208,4 +325,5 @@ end
 # White noise to red noise (selection)
 # sine wave for selection
 #investigate when r and s and l are really small
+# investigate when selection places c equilibrium close to maximum of HGT and away from maximum
 #slow fast analysis (with selection being much slower than growth rates of bacteria)
