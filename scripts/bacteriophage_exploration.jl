@@ -77,7 +77,7 @@ end
 
 function bifurcwol(s, p)
     @unpack r = p
-    return -( r + s ) / (r*s)
+    return ( -r - s ) / (r*s)
 end
 
 let
@@ -85,44 +85,17 @@ let
     en = 1.0 
     srange = st:0.0001:en
     data = [bifurcwol(s, BacPhagePar()) for s in srange]
-    bifurcplot = figure(figsize=(8,2.5))
+    bifurcplot = figure(figsize=(5,4))
     plot(srange, data)
     ylabel("Ĉ")
     xlabel("s")
-    yaxis(-1, 1) #change coords
+    ylim(-20, 20) #change coords
     hlines(0.0, st, en, colors= "black")
     hlines(1.0, st, en, colors= "black")
-    return bifurcplot
-    # savefig(joinpath(abpath(), "figs/withoutlysogeny.png"))
+    # return bifurcplot
+    savefig(joinpath(abpath(), "figs/bifurcwol.png"))
 end
 
-# With lysogeny
-g(C) = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
-
-SymPy.solve(g(C), C)
-
-SymPy.simplify(diff(g(C),C))
-
-SymPy.simplify(- ((1^2 * s^2) / (1 * s + 1)^2 ) - 2 * 1 * r - ((2 * 1 * s ) / (1 * s + 1)^2) - b + r + (s / (1 * s + 1)^2 ))
-
-SymPy.solve(SymPy.simplify(- ((1^2 * s^2) / (1 * s + 1)^2 ) - 2 * 1 * r - ((2 * 1 * s ) / (1 * s + 1)^2) - b + r + (s / (1 * s + 1)^2 )), s)
-# equilibrium at 1 is stable when s >-(b+r)/(b+r+1)
-
-function equilr(p)
-    @unpack b, s, r = p
-    eq1 = -(b*s + r + s - sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s)
-    eq2 = -(b*s + r + s + sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s)
-    return [eq1, eq2]
-end
-
-equilr(BacPhagePar(s = -0.5))
-
-- ((C^2 * s^2) / (C * s + 1)^2 ) - 2 * C * r - ((2 * C * s ) / (C * s + 1)^2) - b + r + (s / (C * s + 1)^2 )
-(-b * s - r - s)^2
-
-SymPy.solve(s+2,s)
-SymPy.solve(-(b*s + r + s - sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s),s)
-SymPy.solve(-(b*s + r + s + sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s),s)
 # With lysogeny - assuming r is tiny (0)
 h(C) = ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
 
@@ -139,24 +112,20 @@ SymPy.simplify(( (-b/(s*(b + 1))) * s^2 * ((-b/(s*(b + 1))) - 1)  - b * ((-b/(s*
 #C*=1 stable when s > -b/(b+1)
 #C*= -b/(s*(b + 1)) stable when s < -b/(b+1)
 
-## Geometric analysis
-# Without lysogeny
 
-
-# With lysogeny - assuming r is tiny (0)
 #### CHECK what type of function/graph is similar
 # take limit of s to zero to see how figure changes shape
-function fullmodel(C, p)
+function modelwlrtiny(C, p)
     @unpack s, b = p
     return ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
 end
 
 let
     Crange = 0.0:0.01:1.0
-    data1 = [fullmodel(C, BacPhagePar(s = -1.1)) for C in Crange]
-    data2 = [fullmodel(C, BacPhagePar(s = -0.01)) for C in Crange]
-    data3 = [fullmodel(C, BacPhagePar(s = -0.0099)) for C in Crange]
-    data4 = [fullmodel(C, BacPhagePar(s = 0.001)) for C in Crange]
+    data1 = [modelwlrtiny(C, BacPhagePar(s = -1.1)) for C in Crange]
+    data2 = [modelwlrtiny(C, BacPhagePar(s = -0.02)) for C in Crange]
+    data3 = [modelwlrtiny(C, BacPhagePar(s = -0.0099)) for C in Crange]
+    data4 = [modelwlrtiny(C, BacPhagePar(s = 0.001)) for C in Crange]
     testfull = figure(figsize=(8,8))
     subplot(2,2,1)
     plot(Crange, data1)
@@ -183,9 +152,9 @@ end
 
 let
     Crange = -5.0:0.01:5.0
-    data1 = [fullmodel(C, BacPhagePar(s = -1.1)) for C in Crange]
-    data2 = [fullmodel(C, BacPhagePar(s = -0.01)) for C in Crange]
-    data3 = [fullmodel(C, BacPhagePar(s = 1)) for C in Crange]
+    data1 = [modelwlrtiny(C, BacPhagePar(s = -1.1)) for C in Crange]
+    data2 = [modelwlrtiny(C, BacPhagePar(s = -0.01)) for C in Crange]
+    data3 = [modelwlrtiny(C, BacPhagePar(s = 1)) for C in Crange]
     testfull = figure(figsize=(8,3))
     subplot(1,3,1)
     plot(Crange, data1)
@@ -203,18 +172,51 @@ let
     savefig(joinpath(abpath(), "figs/withlysogenyrzero_generalgraph.png"))
 end
 
-function equil(s, p)
+let
+    Crange = 0.0:0.001:1.0
+    data1 = [modelwlrtiny(C, BacPhagePar(s = -1.1)) for C in Crange]
+    data2 = [modelwlrtiny(C, BacPhagePar(s = -1)) for C in Crange]
+    data3 = [modelwlrtiny(C, BacPhagePar(s = -0.9)) for C in Crange]
+    testfull = figure(figsize=(8,3))
+    subplot(1,3,1)
+    plot(Crange, data1)
+    ylabel("dC/dt")
+    xlabel("C")
+    # ylim(-1, 0)
+    hlines(0.0, 0.0, 1.0, colors="black")
+    subplot(1,3,2)
+    plot(Crange, data2)
+    xlabel("C")
+    hlines(0.0, 0.0, 1.0, colors="black")
+    subplot(1,3,3)
+    plot(Crange, data3)
+    xlabel("C")
+    ylabel("dC/dt")
+    hlines(0.0, 0.0, 1.0, colors="black")
+    tight_layout()
+    return testfull
+    # savefig(joinpath(abpath(), "figs/withlysogenyrzero_generalgraph.png"))
+end
+
+function bifurcwlrtiny(s, p)
     @unpack b = p
     return -b / (s * ( 1 + b ) )
 end
 
 let 
-    srange = -5.0:0.001:5.0
-    datas = [equil(s, BacPhagePar()) for s in srange]
-    testeq = figure()
-    plot(srange, datas)
-    ylim(-10.0,10.0)
-    return testeq
+    st = -1.0
+    en = 1.0 
+    srange = st:0.0001:en
+    data = [bifurcwlrtiny(s, BacPhagePar()) for s in srange]
+    bifurcplot = figure(figsize=(5,5))
+    plot(srange, data)
+    ylabel("Ĉ")
+    xlabel("s")
+    ylim(-1.1, 1.1)
+    hlines(0.0, st, en, linestyles="dashed", colors= "black")
+    hlines(1.0, st, en, colors= "black")
+    # return bifurcplot
+    savefig(joinpath(abpath(), "figs/bifurcwlrtiny.png"))
 end
 
 #If C* can go to infinity but we are bounded (proportion), how do we deal with bounds?
@@ -239,19 +241,38 @@ let
     return test
 end
 
+# With lysogeny
+g(C) = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
 
-# with lysogeny but with r
+SymPy.solve(g(C), C)
 
-function fullmodelr(C, p)
+SymPy.simplify(diff(g(C),C))
+
+SymPy.simplify(- ((1^2 * s^2) / (1 * s + 1)^2 ) - 2 * 1 * r - ((2 * 1 * s ) / (1 * s + 1)^2) - b + r + (s / (1 * s + 1)^2 ))
+
+SymPy.solve(SymPy.simplify(- ((1^2 * s^2) / (1 * s + 1)^2 ) - 2 * 1 * r - ((2 * 1 * s ) / (1 * s + 1)^2) - b + r + (s / (1 * s + 1)^2 )), s)
+# equilibrium at 1 is stable when s >-(b+r)/(b+r+1)
+
+
+
+
+- ((C^2 * s^2) / (C * s + 1)^2 ) - 2 * C * r - ((2 * C * s ) / (C * s + 1)^2) - b + r + (s / (C * s + 1)^2 )
+(-b * s - r - s)^2
+
+SymPy.solve(s+2,s)
+SymPy.solve(-(b*s + r + s - sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s),s)
+SymPy.solve(-(b*s + r + s + sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s),s)
+
+function modelwlr(C, p)
     @unpack s, r, b = p
     return r * C * ( 1 - C ) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
 end
 
 let
     Crange = 0.0:0.01:1.0
-    data1 = [fullmodelr(C, BacPhagePar(s = -1.1)) for C in Crange]
-    data2 = [fullmodelr(C, BacPhagePar(s = -0.3)) for C in Crange]
-    data3 = [fullmodelr(C, BacPhagePar(s = -0.01)) for C in Crange]
+    data1 = [modelwlr(C, BacPhagePar(s = -1.1)) for C in Crange]
+    data2 = [modelwlr(C, BacPhagePar(s = -0.3)) for C in Crange]
+    data3 = [modelwlr(C, BacPhagePar(s = -0.01)) for C in Crange]
     testfull = figure(figsize=(8,3))
     subplot(1,3,1)
     plot(Crange, data1)
@@ -275,9 +296,9 @@ end
 
 let
     Crange = -5.0:0.01:5.0
-    data1 = [fullmodelr(C, BacPhagePar(s = -1.1)) for C in Crange]
-    data2 = [fullmodelr(C, BacPhagePar(s = -0.01)) for C in Crange]
-    data3 = [fullmodelr(C, BacPhagePar(s = 0.5)) for C in Crange]
+    data1 = [modelwlr(C, BacPhagePar(s = -1.1)) for C in Crange]
+    data2 = [modelwlr(C, BacPhagePar(s = -0.01)) for C in Crange]
+    data3 = [modelwlr(C, BacPhagePar(s = 0.5)) for C in Crange]
     testfull = figure(figsize=(8,3))
     subplot(1,3,1)
     plot(Crange, data1)
@@ -294,6 +315,67 @@ let
     tight_layout()
     # return testfull
     savefig(joinpath(abpath(), "figs/withlysogeny_generalgraph.png"))
+end
+
+let
+    Crange = -5.0:0.01:5.0
+    data1 = [modelwlr(C, BacPhagePar(s = -1.1)) for C in Crange]
+    data2 = [modelwlr(C, BacPhagePar(s = -1)) for C in Crange]
+    data3 = [modelwlr(C, BacPhagePar(s = -0.9)) for C in Crange]
+    testfull = figure(figsize=(8,3))
+    subplot(1,3,1)
+    plot(Crange, data1)
+    ylabel("dC/dt")
+    xlabel("C")
+    subplot(1,3,2)
+    plot(Crange, data2)
+    ylabel("dC/dt")
+    xlabel("C")
+    subplot(1,3,3)
+    plot(Crange, data3)
+    xlabel("C")
+    ylabel("dC/dt")
+    tight_layout()
+    return testfull
+    # savefig(joinpath(abpath(), "figs/withlysogeny_generalgraph.png"))
+end
+
+function equilwlr(s, p)
+    @unpack b, r = p
+    eq1 = (-(b*s + r + s) + sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s)
+    eq2 = (-(b*s + r + s) - sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s)
+    return [eq1, eq2]
+end
+
+data = [equilwlr(s, BacPhagePar()) for s in -1:0.0001:1]
+eq1 = zeros(length(-1:0.0001:1))
+eq2 = zeros(length(-1:0.0001:1))
+for i in 1:length(-1:0.0001:1)
+    eq1[i] = data[i][1]
+    eq2[i] = data[i][2]
+end
+
+let 
+    st = -1.0
+    en = 1.0 
+    srange = st:0.0001:en
+    data = [equilwlr(s, BacPhagePar()) for s in srange]
+    eq1 = zeros(length(srange))
+    eq2 = zeros(length(srange))
+    for i in 1:length(srange)
+        eq1[i] = data[i][1]
+        eq2[i] = data[i][2]
+    end
+    bifurcplot = figure(figsize=(5,4))
+    plot(srange, eq1, color = "green")
+    plot(srange, eq2, color = "blue")
+    ylabel("Ĉ")
+    xlabel("s")
+    ylim(-30, 30)
+    hlines(0.0, st, en, linestyles="dashed", colors= "black")
+    hlines(1.0, st, en, colors= "black")
+    # return bifurcplot
+    savefig(joinpath(abpath(), "figs/bifurcwlr.png"))
 end
 
 #Horizontal Gene Transfer
