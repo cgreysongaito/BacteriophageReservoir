@@ -1,30 +1,5 @@
 include("packages.jl")
-
-##
-
-
-function abpath()
-    replace(@__DIR__, "scripts" => "")
-end #function to create a absolute path as a character string
-
-@with_kw mutable struct BacPhagePar
-    r = 0.1
-    s = 0.1
-    b = 0.01
-end
-
-function bacphage!(du, u, p, t,)
-    @unpack r, l = p
-    C = u
-    du[1] = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + l * ( 1 - C )
-    return
-end
-
-function bacphage(u, par)
-    du = similar(u)
-    bacphage!(du, u, p, 0.0)
-    return du
-end
+include("bacteriophage_commoncode.jl")
 
 ## Symbolic analysis
 @vars C
