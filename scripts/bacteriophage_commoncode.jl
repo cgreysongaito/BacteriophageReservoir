@@ -8,52 +8,26 @@ end
     b = 0.01
 end
 
-function sine(t)
-    return sin(t)
-end
-
-sine(2.0)
-
 @with_kw mutable struct BacPhageSinePar
     r = 0.1
     b = 0.01
-    selec::Function = sine
+    per = 0.5
+    # selec::Function = sine
 end
 
 function bacphage!(du, u, p, t,)
-    @unpack r, b = p
-    C, s = u
-    du[1] = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
-    du[2] = 
+    @unpack r, b, s = p
+    du = r * u * (1 - u) + ( s / ( 1 + s * u ) ) * u * ( 1 - u ) + b * ( 1 - u )
     return
 end
 
 function bacphage_sine!(du, u, p, t,)
-    @unpack r, b = p
-    s = sine(t)
-    C = u
-    du[1] = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
+    @unpack r, b, per = p
+    C , S  = u
+    du[1] = r * C * (1 - C) + ( S / ( 1 + S * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
+    du[2] = per * cos(per * t)
     return
 end
-
-function sinetest!(du, u, p, t,)
-    s = p.selec(t)
-    du = s
-    return
-end
-
-let 
-    u0 = [1.0]
-    tspan=(0.0, 3.0)
-    prob = ODEProblem(sinetest!, u0, tspan, BacPhageSinePar())
-    sol = solve(prob)
-
-    test = figure()
-    plot(sol.t, sol.u)
-    return test
-end
-
-
 
 function noise_creation(r, len)
     white = rand(Normal(0.0, 0.01), Int64(len))
