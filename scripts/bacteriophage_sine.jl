@@ -17,9 +17,9 @@ end
 
 
 let 
-    u0 = [0.5, 0.0]
+    u0 = [0.5]
     tspan=(0.0, 300.0)
-    prob = ODEProblem(bacphage!, [0.5], (0.0, 300.0),  BacPhagePar())
+    prob = ODEProblem(bacphage!, u0, (0.0, 300.0),  BacPhagePar())
     sol = solve(prob)
 
     test = figure()
@@ -28,4 +28,17 @@ let
 end
 
 prob = ODEProblem(bacphage!, [0.5], (0.0, 300.0),  BacPhagePar())
-integrator = init(prob)
+integrator = init(prob, Tsit5())
+integrator.p.s
+
+
+let 
+    u0 = [0.5]
+    tsend = 100.0
+    tvals = 10.0:1.0:tsend
+    testdata = bacphage_pert(0.01, u0, 5, 0.5, 1, tsend, tvals)
+
+    test = figure()
+    plot(testdata.t, testdata.u)
+    return test
+end
