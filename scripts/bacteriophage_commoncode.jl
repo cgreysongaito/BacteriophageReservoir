@@ -21,6 +21,12 @@ function bacphage!(du, u, p, t,)
     return
 end
 
+function bacphage_wobac!(du, u, p, t,)
+    @unpack r, b, s = p
+    du[1] = r * u[1] * (1 - u[1]) + ( s / ( 1 + s * u[1] ) ) * u[1] * ( 1 - u[1] )
+    return
+end
+
 function bacphage_sine!(du, u, p, t,)
     @unpack r, b, per = p
     C , S  = u
