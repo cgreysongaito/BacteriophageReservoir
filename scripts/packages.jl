@@ -7,6 +7,7 @@ using DifferentialEquations
 using ForwardDiff
 using Distributions
 using StatsBase
+using QuadGK
 using SymPy
 using Random
 using PyPlot
