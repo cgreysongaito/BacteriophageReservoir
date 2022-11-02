@@ -4,7 +4,7 @@ include("bacteriophage_commoncode.jl")
 ## Symbolic analysis
 @vars C
 
-@vars r s b
+@vars r s b γ
 
 # Without lysogeny
 f(C) = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C )
@@ -548,6 +548,51 @@ let
     hlines(1.0, st, en, colors= "black")
     return bifurcplot
     # savefig(joinpath(abpath(), "figs/bifurcwlrtiny.png"))
+end
+
+# With lytic taking carrier bacteria out
+h(C) = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) - γ * C + b * ( 1 - C )
+
+SymPy.simplify(SymPy.solve(h(C), C))
+
+@with_kw mutable struct BacPhagePar_remove
+    r = 0.1
+    s = 0.1
+    b = 0.01
+    γ = 0.01
+end
+
+function equilwlr_remove(s, p)
+    @unpack b, r, γ = p
+    eq1 = -(-3*(-b*s + b - r - s + γ)/(r*s) + (b*s - r*s + r + s*γ + s)^2/(r^2*s^2))/(3*(-27*b/(2*r*s) + sqrt(-4*(-3*(-b*s + b - r - s + γ)/(r*s) + (b*s - r*s + r + s*γ + s)^2/(r^2*s^2))^3 + (-27*b/(r*s) - 9*(-b*s + b - r - s + γ)*(b*s - r*s + r + s*γ + s)/(r^2*s^2) + 2*(b*s - r*s + r + s*γ + s)^3/(r^3*s^3))^2)/2 - 9*(-b*s + b - r - s + γ)*(b*s - r*s + r + s*γ + s)/(2*r^2*s^2) + (b*s - r*s + r + s*γ + s)^3/(r^3*s^3))^(1/3)) - (-27*b/(2*r*s) + sqrt(-4*(-3*(-b*s + b - r - s + γ)/(r*s) + (b*s - r*s + r + s*γ + s)^2/(r^2*s^2))^3 + (-27*b/(r*s) - 9*(-b*s + b - r - s + γ)*(b*s - r*s + r + s*γ + s)/(r^2*s^2) + 2*(b*s - r*s + r + s*γ + s)^3/(r^3*s^3))^2)/2 - 9*(-b*s + b - r - s + γ)*(b*s - r*s + r + s*γ + s)/(2*r^2*s^2) + (b*s - r*s + r + s*γ + s)^3/(r^3*s^3))^(1/3)/3 - (b*s - r*s + r + s*γ + s)/(3*r*s)
+    # eq2 = -(-3*(-b*s + b - r - s + γ)/(r*s) + (b*s - r*s + r + s*γ + s)^2/(r^2*s^2))/(3*(-1/2 - sqrt(3)*I/2)*(-27*b/(2*r*s) + sqrt(-4*(-3*(-b*s + b - r - s + γ)/(r*s) + (b*s - r*s + r + s*γ + s)^2/(r^2*s^2))^3 + (-27*b/(r*s) - 9*(-b*s + b - r - s + γ)*(b*s - r*s + r + s*γ + s)/(r^2*s^2) + 2*(b*s - r*s + r + s*γ + s)^3/(r^3*s^3))^2)/2 - 9*(-b*s + b - r - s + γ)*(b*s - r*s + r + s*γ + s)/(2*r^2*s^2) + (b*s - r*s + r + s*γ + s)^3/(r^3*s^3))^(1/3)) - (-1/2 - sqrt(3)*I/2)*(-27*b/(2*r*s) + sqrt(-4*(-3*(-b*s + b - r - s + γ)/(r*s) + (b*s - r*s + r + s*γ + s)^2/(r^2*s^2))^3 + (-27*b/(r*s) - 9*(-b*s + b - r - s + γ)*(b*s - r*s + r + s*γ + s)/(r^2*s^2) + 2*(b*s - r*s + r + s*γ + s)^3/(r^3*s^3))^2)/2 - 9*(-b*s + b - r - s + γ)*(b*s - r*s + r + s*γ + s)/(2*r^2*s^2) + (b*s - r*s + r + s*γ + s)^3/(r^3*s^3))^(1/3)/3 - (b*s - r*s + r + s*γ + s)/(3*r*s)
+    # eq3 = -(-3*(-b*s + b - r - s + γ)/(r*s) + (b*s - r*s + r + s*γ + s)^2/(r^2*s^2))/(3*(-1/2 + sqrt(3)*I/2)*(-27*b/(2*r*s) + sqrt(-4*(-3*(-b*s + b - r - s + γ)/(r*s) + (b*s - r*s + r + s*γ + s)^2/(r^2*s^2))^3 + (-27*b/(r*s) - 9*(-b*s + b - r - s + γ)*(b*s - r*s + r + s*γ + s)/(r^2*s^2) + 2*(b*s - r*s + r + s*γ + s)^3/(r^3*s^3))^2)/2 - 9*(-b*s + b - r - s + γ)*(b*s - r*s + r + s*γ + s)/(2*r^2*s^2) + (b*s - r*s + r + s*γ + s)^3/(r^3*s^3))^(1/3)) - (-1/2 + sqrt(3)*I/2)*(-27*b/(2*r*s) + sqrt(-4*(-3*(-b*s + b - r - s + γ)/(r*s) + (b*s - r*s + r + s*γ + s)^2/(r^2*s^2))^3 + (-27*b/(r*s) - 9*(-b*s + b - r - s + γ)*(b*s - r*s + r + s*γ + s)/(r^2*s^2) + 2*(b*s - r*s + r + s*γ + s)^3/(r^3*s^3))^2)/2 - 9*(-b*s + b - r - s + γ)*(b*s - r*s + r + s*γ + s)/(2*r^2*s^2) + (b*s - r*s + r + s*γ + s)^3/(r^3*s^3))^(1/3)/3 - (b*s - r*s + r + s*γ + s)/(3*r*s)
+    return [eq1]#, eq2, eq3]
+end
+
+
+let 
+    st = -1.0
+    en = 1.0 
+    srange = st:0.0001:en
+    data = [equilwlr_remove(s, BacPhagePar_remove()) for s in srange]
+    eq1 = eq2 = eq3 = zeros(length(srange))
+    for i in 1:length(srange)
+        eq1[i] = data[i][1]
+        # eq2[i] = data[i][2]
+        # eq3[i] = data[i][3]
+    end
+    bifurcplot = figure(figsize=(5,4))
+    plot(srange, eq1, color = "green")
+    # plot(srange, eq2, color = "blue")
+    # plot(srange, eq3, color = "red")
+    ylabel("Ĉ")
+    xlabel("s")
+    ylim(-30, 30)
+    hlines(0.0, st, en, linestyles="dashed", colors= "black")
+    hlines(1.0, st, en, linestyles="dashed", colors= "black")
+    return bifurcplot
+    # savefig(joinpath(abpath(), "figs/bifurcwlr.png"))
 end
 
 # Time series analysis
