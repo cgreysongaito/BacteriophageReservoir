@@ -12,6 +12,7 @@ end
     r = 0.1
     b = 0.01
     per = 0.5
+    amp = 1.0
     # selec::Function = sine
 end
 
@@ -25,15 +26,28 @@ function bacphage_wobac!(du, u, p, t,)
     @unpack r, b, s = p
     du[1] = r * u[1] * (1 - u[1]) + ( s / ( 1 + s * u[1] ) ) * u[1] * ( 1 - u[1] )
     return
-end
+end #can probably remove this and just change the b parameter to zero
 
 function bacphage_sine!(du, u, p, t,)
-    @unpack r, b, per = p
+    @unpack r, b, per, amp = p
     C , S  = u
     du[1] = r * C * (1 - C) + ( S / ( 1 + S * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
-    du[2] = per * cos(per * t)
+    du[2] = amp * per * cos(per * t)
     return
 end
+
+function bacphage_sine_sol(b, per, amp, tsend, tvals)
+    par = BacPhageSinePar()
+    par.b = b
+    par.per = per
+    par.amp = amp
+    u0 = [0.5, 0.0]
+    tspan=(0.0, tsend)
+    prob = ODEProblem(bacphage_sine!, u0, tspan, par)
+    sol = solve(prob)
+    return solend = sol(tvals)
+end
+
 
 function noise_creation(r, len)
     white = rand(Normal(0.0, 0.5), Int64(len))
@@ -50,7 +64,7 @@ function noise_creation(r, len)
     return scalednoise
 end #produces noise with a certain autocorrelation. variance of the noise is scaled using method in Wichmann et al. 2005
 
-function bacphage_pert(b, u0, freq, r, seed, tsend, tvals)
+function bacphage_pert_sol(b, u0, freq, r, seed, tsend, tvals)
     Random.seed!(seed)
     par = BacPhagePar()
     par.b = b
