@@ -88,4 +88,4 @@ test = bacphage_pert_sol(0.01, [0.5], 1.0, 0.0, 17, 500.0, 100.0:1.0:500.0)
 
 test[1,:]
 
-https://github.com/JuliaData/SplitApplyCombine.jl
+#https://github.com/JuliaData/SplitApplyCombine.jl
