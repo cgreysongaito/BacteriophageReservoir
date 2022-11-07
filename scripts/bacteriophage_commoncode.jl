@@ -80,5 +80,12 @@ function bacphage_pert_sol(b, u0, freq, r, seed, tsend, tvals)
     cb = PeriodicCallback(pert_cb2, freq, initial_affect = false)
     prob = ODEProblem(bacphage!, u0, tspan, par)
     sol = DifferentialEquations.solve(prob, callback = cb, reltol = 1e-8)
-    return solend = sol(tvals)
+    solend = sol(tvals)
+    return hcat(solend[1,:], noise[100:500])
 end
+
+test = bacphage_pert_sol(0.01, [0.5], 1.0, 0.0, 17, 500.0, 100.0:1.0:500.0)
+
+test[1,:]
+
+https://github.com/JuliaData/SplitApplyCombine.jl

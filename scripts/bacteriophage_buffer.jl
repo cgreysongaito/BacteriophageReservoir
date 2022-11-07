@@ -186,13 +186,46 @@ end
 tracking_sine_per(0.1:0.1:0.9) #longer periods obviously mean better ability of the system to track the equilibrium
 
 #temporal cross-correlation of equilibrium state with actual dynamics
-function trackingcor_sine_per(perrange)
+#testing of crosscor
+let
+    lrange = 1:1:50
+    soltest = bacphage_sine_sol(0.01, 0.2, 0.5, 500.0, 100.0:1.0:500.0)
+    equilvals = zeros(length(soltest))
+        for i in 1:length(soltest)
+            equilvals[i] = equil(soltest[2,i])
+        end
+    cordata = crosscor(soltest[1,:], equilvals, lrange)
+    # test = figure()
+    # subplot(2,1,1)
+    # plot(soltest.t, equilvals)
+    # plot(soltest.t, soltest[1,:])
+    # subplot(2,1,2)
+    # plot(lrange, cordata)
+    # tight_layout()
+    return findmax(cordata)[2]
+end
+
+soltest = bacphage_sine_sol(0.01, 0.2, 0.5, 500.0, 100.0:1.0:500.0)
+soltest[1,:]
+#maybe best thing is to maximise crosscor and what is this lag - make sure lrange is larger than period
+function calc_equil(sol)
+        equilvals = zeros(length(sol))
+        for i in 1:length(sol)
+            equilvals[i] = equil(sol[2,i])
+        end
+        return equilvals
+end
+
+function trackingcor_sine_per(perrange, lrange)
     trackcor = zeros(length(perrange))
     for (peri, perval) in enumerate(perrange)
         sol = bacphage_sine_sol(0.01, perval, 0.5, 500.0, 100.0:1.0:500.0)
-        equilvals = zeros(length(sol))
-        for i in 1:length(sol)
-            equilval[i] = equil(sol[2,i])
-        end
-        crosscor()
+        equilvals = calc_equil(sol)
+        cordata = crosscor(sol[1,:], equilvals, lrange)
+        trackcor[peri] = findmax(cordata)[2]
+    end
+    return trackcor
+end
+
+trackingcor_sine_per(0.1:0.1:1.8, 1:1:100)
 #need to test this on one per value to check how to summarize over multiple per values
