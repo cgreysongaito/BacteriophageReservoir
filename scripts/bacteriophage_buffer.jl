@@ -1,17 +1,7 @@
 include("packages.jl")
 include("bacteriophage_commoncode.jl")
 
-
-
-let 
-    sinesol = bacphage_sine_sol(0.01, 0.2, 0.5, 300.0, 100.0:1.0:300.0)
-    test = figure()
-    plot(sinesol.t, sinesol.u)
-    return test
-end
-
 #problem with model if selection long enough will just go to 1 (all carrier) and stay there regardless of selection changing (equilibrium)
-
 
 
 #Trying to assess buffering capacity with and without lysogeny.
@@ -30,8 +20,6 @@ function CV_calc_colour(rrange)
     return [mnvals, stdevvals, abs.(CVvals)]
 end
 
-data = CV_calc_colour(0.0:0.1:0.9)
-data[3]
 let
     rrange = 0.0:0.01:0.9
     data = CV_calc_colour(rrange)
@@ -54,8 +42,6 @@ function CV_calc_per(perrange)
     end
     return [mnvals, stdevvals, abs.(CVvals)]
 end
-
-testdata = CV_calc_per(0.1:0.1:1.0)
 
 let
     perrange = 0.1:0.1:1.0
@@ -89,6 +75,7 @@ end
 
 
 #Changing with b
+
 function CV_calc(sol)
     mn = mean(sol)
     stdev = std(sol)
@@ -117,7 +104,7 @@ let
     test = figure()
     # plot(perrange, data[3], color = "blue")
     plot(perrange, data[1], color = "green")
-    plot(perrange, data[2], color = "red")
+    # plot(perrange, data[2], color = "red")
     return test
 end
 
