@@ -81,11 +81,25 @@ function bacphage_pert_sol(b, u0, freq, r, seed, tsend, tvals)
     prob = ODEProblem(bacphage!, u0, tspan, par)
     sol = DifferentialEquations.solve(prob, callback = cb, reltol = 1e-8)
     solend = sol(tvals)
-    return hcat(solend[1,:], noise[100:500])
+    return [[i,j] for (i,j) in zip(solend[1,:], noise[100:500])]
 end
 
-test = bacphage_pert_sol(0.01, [0.5], 1.0, 0.0, 17, 500.0, 100.0:1.0:500.0)
+function equil(s, b::Float64=0.01)
+    r = BacPhagePar().r
+    if s > (-(b+r))/(b+r+1)
+        return 1
+    else
+        return (-(b*s + r + s) - sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s)
+    end
+end
 
-test[1,:]
 
-#https://github.com/JuliaData/SplitApplyCombine.jl
+function vector_prod(sol)
+    soldata=zeros(length(sol))
+    seldata=zeros(length(sol))
+    for i in 1:length(sol)
+        soldata[i] = sol[i][1]
+        seldata[i] = sol[i][2]
+    end
+    return [soldata, seldata]
+end

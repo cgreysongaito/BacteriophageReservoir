@@ -95,9 +95,6 @@ function CV_calc(sol)
     return [mn, stdev, stdev/mn]
 end
 
-test = bacphage_sine_sol(0.01, 0.2, 0.5, 500.0, 100.0:1.0:500.0)
-test[2, :] 
-
 #CV of C minus CV of environment  ####***** SOMETHING FEELS WRONG WHEN CALCULATING THE CV OF ENVIRONMENT
 function StandCV_calc_per(perrange)
     solCVvals = zeros(length(perrange))
@@ -155,18 +152,6 @@ end
 # Tracking of equilibrium (integral area calculation)
 #split if function - if below bifurc value return interior if above return 1
 
-function equil(s, b::Float64=0.01)
-    r = BacPhagePar().r
-    if s > (-(b+r))/(b+r+1)
-        return 1
-    else
-        return (-(b*s + r + s) - sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s)
-    end
-end
-
-equil(-0.21)
-
-test = bacphage_sine_sol(0.01, 0.4, 0.5, 500.0, 100.0:1.0:500.0)
 
 #sine
 function tracking_sine_per(perrange)
@@ -208,10 +193,11 @@ end
 soltest = bacphage_sine_sol(0.01, 0.2, 0.5, 500.0, 100.0:1.0:500.0)
 soltest[1,:]
 #maybe best thing is to maximise crosscor and what is this lag - make sure lrange is larger than period
-function calc_equil(sol)
-        equilvals = zeros(length(sol))
-        for i in 1:length(sol)
-            equilvals[i] = equil(sol[2,i])
+function calc_equil(sel)
+    len = length(sel)
+        equilvals = zeros(len)
+        for i in 1:len
+            equilvals[i] = equil(sel[i])
         end
         return equilvals
 end
@@ -220,8 +206,9 @@ function trackingcor_sine_per(perrange, lrange)
     trackcor = zeros(length(perrange))
     for (peri, perval) in enumerate(perrange)
         sol = bacphage_sine_sol(0.01, perval, 0.5, 500.0, 100.0:1.0:500.0)
-        equilvals = calc_equil(sol)
-        cordata = crosscor(sol[1,:], equilvals, lrange)
+        splitsolsel = vector_prod(sol)
+        equilvals = calc_equil(splitsolsel[2])
+        cordata = crosscor(splitsolsel[1], equilvals, lrange)
         trackcor[peri] = findmax(cordata)[2]
     end
     return trackcor
@@ -229,3 +216,17 @@ end
 
 trackingcor_sine_per(0.1:0.1:1.8, 1:1:100)
 #need to test this on one per value to check how to summarize over multiple per values
+
+function trackingcor_noise_r(rrange, lrange)
+    trackcor = zeros(length(rrange))
+    for (ri, rval) in enumerate(rrange)
+        sol = bacphage_pert_sol(0.01, [0.5], 1.0, rval, 125, 500.0, 100.0:1.0:500.0)
+        splitsolsel = vector_prod(sol)
+        equilvals = calc_equil(splitsolsel[2])
+        cordata = crosscor(splitsolsel[1], equilvals, lrange)
+        trackcor[ri] = findmax(cordata)[2]
+    end
+    return trackcor
+end
+
+trackingcor_noise_r(0.1:0.1:0.9, 1:1:100)
