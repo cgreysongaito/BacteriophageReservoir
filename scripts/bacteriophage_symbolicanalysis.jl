@@ -595,6 +595,43 @@ let
     # savefig(joinpath(abpath(), "figs/bifurcwlr.png"))
 end
 
+
+#proove conjugation more than bacteriophage
+@vars x
+
+g(x) = -2*(x^3) + 4 * (x^2) -2*x
+
+SymPy.solve(g(x), x)
+
+eq2= 0.1:0.1:1.0
+
+test2 = rand(Float64, (2, 2))
+test2[1,2]
+test2[2,1]
+
+function conj_proof(eq1,eq2)
+    return (2 * eq2 - eq2^2 - 2 * eq1 + eq1^2) / (3 * eq2^2 - 2 * eq2^3 - 3 * eq1^2 + 2 * eq1^3)
+end
+
+conj_proof(0.5,0.6)
+conj_proof(0.6,0.5)
+
+#seems to be symmetrical! what does this mean?
+
+#rows are eq2
+#columns are eq1
+let
+    eq1 = eq2 = 0.1:0.1:1.0
+    test = zeros(10,10)
+    for i in 1:10
+        for j in 1:10
+            test[i,j] = (2 * eq2[i] - eq2[i]^2 - 2 * eq1[j] + eq1[j]^2) / (3 * eq2[i]^2 - 2 * eq2[i]^3 - 3 * eq1[j]^2 + 2 * eq1[j]^3)
+        end
+    end
+    return test
+end
+
+
 # Time series analysis
 
 

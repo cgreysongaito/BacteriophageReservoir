@@ -4,6 +4,8 @@ include("bacteriophage_commoncode.jl")
 #problem with model if selection long enough will just go to 1 (all carrier) and stay there regardless of selection changing (equilibrium)
 
 
+
+
 #Trying to assess buffering capacity with and without lysogeny.
 #CV
 #changing with colour of noise
@@ -25,6 +27,7 @@ let
     data = CV_calc_colour(rrange)
     test = figure()
     plot(rrange, data[3])
+    xlabel()
     return test
 end
 
@@ -48,6 +51,8 @@ let
     data = CV_calc_per(perrange)
     test = figure()
     plot(perrange, data[3])
+    xlabel("Periodicity")
+    ylabel("CV")
     return test
 end
 
@@ -82,6 +87,18 @@ function CV_calc(sol)
     return [mn, stdev, stdev/mn]
 end
 
+let 
+    sol = bacphage_sine_sol(0.01,0.2, 0.5, 500.0, 100.0:1.0:500.0)
+    return std(sol[2,:])
+end
+
+let 
+    sol = bacphage_sine_sol(0.01,1.0, 0.5, 500.0, 100.0:1.0:500.0)
+    test=figure()
+    plot(sol.t, sol.u)
+    return test
+end
+
 #CV of C minus CV of environment  ####***** SOMETHING FEELS WRONG WHEN CALCULATING THE CV OF ENVIRONMENT
 function StandCV_calc_per(perrange)
     solCVvals = zeros(length(perrange))
@@ -96,15 +113,15 @@ function StandCV_calc_per(perrange)
     return [solCVvals,envirCVvals,StandCVvals]
 end
 
-StandCV_calc_per(0.1:0.1:1.0)
-
 let
     perrange = 0.1:0.1:1.0
     data = StandCV_calc_per(perrange)
     test = figure()
-    # plot(perrange, data[3], color = "blue")
+    plot(perrange, data[3], color = "blue")
     plot(perrange, data[1], color = "green")
-    # plot(perrange, data[2], color = "red")
+    plot(perrange, data[2], color = "red")
+    xlabel("Periodicity")
+    ylabel("CV")
     return test
 end
 
@@ -155,30 +172,18 @@ function tracking_sine_per(perrange)
     return track
 end
 
-tracking_sine_per(0.1:0.1:0.9) #longer periods obviously mean better ability of the system to track the equilibrium
+let
+    data = tracking_sine_per(0.1:0.1:0.9) #longer periods obviously mean better ability of the system to track the equilibrium
+    test = figure()
+    plot(0.1:0.1:0.9, data)
+    xlabel("Periodicity")
+    ylabel("Mean difference between solution and equilibrium")
+    return test
+end
 
 #temporal cross-correlation of equilibrium state with actual dynamics
 #testing of crosscor
-let
-    lrange = 1:1:50
-    soltest = bacphage_sine_sol(0.01, 0.2, 0.5, 500.0, 100.0:1.0:500.0)
-    equilvals = zeros(length(soltest))
-        for i in 1:length(soltest)
-            equilvals[i] = equil(soltest[2,i])
-        end
-    cordata = crosscor(soltest[1,:], equilvals, lrange)
-    # test = figure()
-    # subplot(2,1,1)
-    # plot(soltest.t, equilvals)
-    # plot(soltest.t, soltest[1,:])
-    # subplot(2,1,2)
-    # plot(lrange, cordata)
-    # tight_layout()
-    return findmax(cordata)[2]
-end
 
-soltest = bacphage_sine_sol(0.01, 0.2, 0.5, 500.0, 100.0:1.0:500.0)
-soltest[1,:]
 #maybe best thing is to maximise crosscor and what is this lag - make sure lrange is larger than period
 function calc_equil(sel)
     len = length(sel)
@@ -201,8 +206,16 @@ function trackingcor_sine_per(perrange, lrange)
     return trackcor
 end
 
-trackingcor_sine_per(0.1:0.1:1.8, 1:1:100)
-#need to test this on one per value to check how to summarize over multiple per values
+let 
+    data = trackingcor_sine_per(0.1:0.1:0.9, 1:1:100)
+    test = figure()
+    plot(0.1:0.1:0.9, data)
+    xlabel("Periodicity")
+    ylabel("Delay (from crosscorrelation)")
+    return test
+end
+
+#DO I NEED TO STANDARDIZE BY UNDERLYING TIME SCALE OF SELECTION WHEN CHANGING PERIOD
 
 function trackingcor_noise_r(rrange, lrange)
     trackcor = zeros(length(rrange))
