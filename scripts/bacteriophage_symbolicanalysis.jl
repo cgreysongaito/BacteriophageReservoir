@@ -322,6 +322,12 @@ function equilwlr(s, p)
     return [eq1, eq2]
 end
 
+function bioequilwlr(s, p)
+    @unpack b, r = p
+    eq2 = (-(b*s + r + s) - sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s)
+    return eq2
+end
+
 data = [equilwlr(s, BacPhagePar()) for s in -1:0.0001:1]
 eq1 = zeros(length(-1:0.0001:1))
 eq2 = zeros(length(-1:0.0001:1))
@@ -352,6 +358,56 @@ let
     # return bifurcplot
     savefig(joinpath(abpath(), "figs/bifurcwlr.png"))
 end
+
+let 
+    st = -1.0
+    en = 1.0 
+    srange = st:0.0001:en
+    data1 = [bioequilwlr(s, BacPhagePar()) for s in srange]
+    data2 = [bioequilwlr(s, BacPhagePar(b=0.02)) for s in srange]
+    data3 = [bioequilwlr(s, BacPhagePar(b=0.09)) for s in srange]
+    bifurcplot = figure(figsize=(5,4))
+    plot(srange, data1, color = "blue")
+    plot(srange, data2, color = "green")
+    plot(srange, data3, color = "red")
+    ylabel("Ĉ")
+    xlabel("s")
+    xlim(-1.00, 0.2)
+    ylim(0, 1)
+    hlines(0.0, st, en, linestyles="dashed", colors= "black")
+    hlines(1.0, st, en, colors= "black")
+    return bifurcplot
+    # savefig(joinpath(abpath(), "figs/bifurcwlr_changingb.png"))
+end
+
+
+#trying bifurcation of s with linear asexual reproduction function
+function linequil(s, p)
+    @unpack r, b = p
+    return (-b + s) / (r)
+end
+
+let 
+    st = -1.0
+    en = 1.0 
+    srange = st:0.0001:en
+    data1 = [linequil(s, BacPhagePar()) for s in srange]
+    data2 = [linequil(s, BacPhagePar(b=0.02)) for s in srange]
+    data3 = [linequil(s, BacPhagePar(b=0.09)) for s in srange]
+    bifurcplot = figure(figsize=(5,4))
+    plot(srange, data1, color = "blue")
+    plot(srange, data2, color = "green")
+    plot(srange, data3, color = "red")
+    ylabel("Ĉ")
+    xlabel("s")
+    xlim(-1.00, 1.0)
+    ylim(0, 1)
+    hlines(0.0, st, en, linestyles="dashed", colors= "black")
+    hlines(1.0, st, en, colors= "black")
+    return bifurcplot
+    # savefig(joinpath(abpath(), "figs/bifurcwlr_changingb.png"))
+end
+
 
 #Horizontal Gene Transfer
 
@@ -631,6 +687,20 @@ let
     return test
 end
 
+
+function dcdt(C,par)
+    @unpack r, b, s = par
+    return r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
+end
+
+dcdt(0.4499999, BacPhagePar(s = 0.01))
+
+function dHGTdt(C,dcdtval, par)
+    @unpack r, b = par
+    return 100 * (r * dcdtval - 2 * r * C * dcdtval - b * dcdtval)
+end
+
+dHGTdt(0.449999, dcdt(0.4499999, BacPhagePar(s = 0.01)), BacPhagePar(s = 0.01))
 
 # Time series analysis
 

@@ -215,6 +215,58 @@ let
     return test
 end
 
+function trackingcor_sine(bval)
+    sol = bacphage_sine_sol(bval, 0.05, 1.0, 500.0, 100.0:0.01:500.0)
+    return vector_prod(sol)
+    # equilvals = calc_equil(splitsolsel[2])
+    # cordata = crosscor(splitsolsel[1], equilvals, lrange)
+    # return findmax(cordata)[2]
+end
+
+
+let 
+    par = BacPhagePar(b=0.01, s=-0.2)
+    u0 = [0.5]
+    tspan=(0.0, 500.0)
+    prob = ODEProblem(bacphage!, u0, tspan, par)
+    return sol = solve(prob)
+    # test = figure()
+    # plot(sol.t, sol.u)
+    # return test
+end
+
+let 
+    testdata = trackingcor_sine(0.01)
+    test = figure()
+    plot(100.0:0.01:500.0, testdata[1])
+    plot(100.0:0.01:500.0, testdata[2])
+    return test
+end
+
+#Note - increasing b increases the lower limit of the equilibrium value
+
+#tracking with changing b (still sine wave)
+function trackingcor_sine_b(brange, lrange)
+    trackcor = zeros(length(brange))
+    for (bi, bval) in enumerate(brange)
+        
+    end
+    return trackcor
+end
+
+
+
+
+let 
+    data = trackingcor_sine_b(0.0:0.001:0.06, 1:1:100)
+    test = figure()
+    plot(0.0:0.001:0.06, data)
+    xlabel("b")
+    ylabel("Delay (from crosscorrelation)")
+    return test
+end
+
+
 #DO I NEED TO STANDARDIZE BY UNDERLYING TIME SCALE OF SELECTION WHEN CHANGING PERIOD
 
 function trackingcor_noise_r(rrange, lrange)

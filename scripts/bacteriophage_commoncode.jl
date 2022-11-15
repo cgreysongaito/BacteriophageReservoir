@@ -103,3 +103,81 @@ function vector_prod(sol)
     end
     return [soldata, seldata]
 end
+
+
+#Attempt 2 for sine wave solving (function in parameter set)
+function sel_sine(u, p, t)
+    return p.amp * sin(p.per * t)
+end
+
+@with_kw mutable struct BacPhageSine2Par
+    r = 0.1
+    b = 0.01
+    per = 0.5
+    amp = 1.0
+    selec::Function = sel_sine
+end
+
+function bacphage_sine2!(du, u, p, t,)
+    @unpack r, b, per, amp = p
+    s = p.selec(u,p,t)
+    # du[1] = r * u[1] * (1 - u[1]) + ( s / ( 1 + s * u[1] ) ) * u[1] * ( 1 - u[1] ) + b * ( 1 - u[1] )
+    du[1] = r * u[1] * (1 - u[1]) + s * u[1] * ( 1 - u[1] ) + b * ( 1 - u[1] )
+    return
+end
+
+#why is s C (1-C) settling at 1.0 even though s is cycling
+
+let
+    par = BacPhageSine2Par()
+    par.b = 0.01
+    par.per = 0.7
+    u0 = [0.5]
+    tspan=(0.0, 500.0)
+    # condition(u,t,integrator) = integrator.u[1] > 1.0
+    # function returnC!(integrator)
+    #     integrator.u[1] = 0.999999999999999
+    # end
+
+    # cb = DiscreteCallback(condition, returnC!)
+
+    prob = ODEProblem(bacphage_sine2!, u0, tspan, par)
+    sol = solve(prob)
+    test = figure()
+    plot(sol.t, sol.u)
+    ylim(0.0,1.6)
+    return test
+end
+
+#why are we getting C values above 1
+#could we fix the C values above 1 by using discretecallback to return to 1 if above 1 - (maybe 0.99999999)
+
+function sel_simple(u, p, t)
+    return -0.01t + 0.1
+end
+
+@with_kw mutable struct BacPhageSimplePar
+    r = 0.1
+    b = 0.01
+    selec::Function = sel_simple
+end
+
+function bacphage_simple!(du, u, p, t,)
+    @unpack r, b = p
+    s = p.selec(u,p,t)
+    du[1] = r * u[1] * (1 - u[1]) + ( s / ( 1 + s * u[1] ) ) * u[1] * ( 1 - u[1] ) + b * ( 1 - u[1] )
+    return
+end
+
+let
+    par = BacPhageSimplePar()
+    par.b = 0.08
+    u0 = [0.999999999]
+    tspan=(0.0, 120.0)
+    prob = ODEProblem(bacphage_simple!, u0, tspan, par)
+    sol = solve(prob)
+    test = figure()
+    plot(sol.t, sol.u)
+    ylim(0.0,1.0)
+    return test
+end
