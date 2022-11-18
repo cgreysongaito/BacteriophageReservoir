@@ -382,9 +382,20 @@ end
 
 
 #trying bifurcation of s with linear asexual reproduction function
+@vars r s b
+@vars C
+g(C) = r * C * (1 - C) +  s * C * ( 1 - C ) + b * ( 1 - C )
+
+SymPy.solve(g(C), C)
+SymPy.simplify(diff(g(C),C))
+
+SymPy.simplify(-2⋅(-b/(r + s))⋅r - 2⋅(-b/(r + s))⋅s - b + r + s)
+
+SymPy.solve(SymPy.simplify(-2⋅(-b/(r + s))⋅r - 2⋅(-b/(r + s))⋅s - b + r + s),s)
+
 function linequil(s, p)
     @unpack r, b = p
-    return (-b + s) / (r)
+    return -b / (r+s)
 end
 
 let 

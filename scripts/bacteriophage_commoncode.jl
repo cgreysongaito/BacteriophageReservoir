@@ -13,7 +13,6 @@ end
     b = 0.01
     per = 0.5
     amp = 1.0
-    # selec::Function = sine
 end
 
 function bacphage!(du, u, p, t,)
@@ -31,7 +30,8 @@ end #can probably remove this and just change the b parameter to zero
 function bacphage_sine!(du, u, p, t,)
     @unpack r, b, per, amp = p
     C , S  = u
-    du[1] = r * C * (1 - C) + ( S / ( 1 + S * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
+    # du[1] = r * C * (1 - C) + ( S / ( 1 + S * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
+    du[1] = r * C * (1 - C) +  S * C * ( 1 - C ) + b * ( 1 - C )
     du[2] = amp * per * cos(per * t)
     return
 end
@@ -47,6 +47,14 @@ function bacphage_sine_sol(b, per, amp, tsend, tvals)
     sol = solve(prob)
     return solend = sol(tvals)
 end
+
+let
+    data = bacphage_sine_sol(0.01, 0.7, 1.0, 500, 0.0:1.0:100)
+    test = figure()
+    plot(data.t, data.u)
+    return test
+end
+
 
 
 function noise_creation(r, len)
@@ -151,33 +159,3 @@ end
 
 #why are we getting C values above 1
 #could we fix the C values above 1 by using discretecallback to return to 1 if above 1 - (maybe 0.99999999)
-
-function sel_simple(u, p, t)
-    return -0.01t + 0.1
-end
-
-@with_kw mutable struct BacPhageSimplePar
-    r = 0.1
-    b = 0.01
-    selec::Function = sel_simple
-end
-
-function bacphage_simple!(du, u, p, t,)
-    @unpack r, b = p
-    s = p.selec(u,p,t)
-    du[1] = r * u[1] * (1 - u[1]) + ( s / ( 1 + s * u[1] ) ) * u[1] * ( 1 - u[1] ) + b * ( 1 - u[1] )
-    return
-end
-
-let
-    par = BacPhageSimplePar()
-    par.b = 0.08
-    u0 = [0.999999999]
-    tspan=(0.0, 120.0)
-    prob = ODEProblem(bacphage_simple!, u0, tspan, par)
-    sol = solve(prob)
-    test = figure()
-    plot(sol.t, sol.u)
-    ylim(0.0,1.0)
-    return test
-end
