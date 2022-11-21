@@ -114,7 +114,7 @@ end
 
 
 #Attempt 2 for sine wave solving (function in parameter set)
-function sel_sine(u, p, t)
+function sel_sine(p, t)
     return p.amp * sin(p.per * t)
 end
 
@@ -128,9 +128,9 @@ end
 
 function bacphage_sine2!(du, u, p, t,)
     @unpack r, b, per, amp = p
-    s = p.selec(u,p,t)
+    s = p.selec(p,t)
     # du[1] = r * u[1] * (1 - u[1]) + ( s / ( 1 + s * u[1] ) ) * u[1] * ( 1 - u[1] ) + b * ( 1 - u[1] )
-    du[1] = r * u[1] * (1 - u[1]) + s * u[1] * ( 1 - u[1] ) + b * ( 1 - u[1] )
+    du[1] = r * u[1] * (1 - u[1]) + (s * u[1] * ( 1 - u[1] )) + b * ( 1 - u[1] )
     return
 end
 
@@ -139,7 +139,8 @@ end
 let
     par = BacPhageSine2Par()
     par.b = 0.01
-    par.per = 0.7
+    par.per = 0.2
+    par.amp= 0.5
     u0 = [0.5]
     tspan=(0.0, 500.0)
     # condition(u,t,integrator) = integrator.u[1] > 1.0
@@ -151,9 +152,11 @@ let
 
     prob = ODEProblem(bacphage_sine2!, u0, tspan, par)
     sol = solve(prob)
+    solseries = sol(0.0:1.0:300.0)
     test = figure()
-    plot(sol.t, sol.u)
-    ylim(0.0,1.6)
+    plot(solseries.t, solseries.u)
+    plot(solseries.t, [sel_sine(par, t) for t in solseries.t])
+    ylim(-1,1.6)
     return test
 end
 
