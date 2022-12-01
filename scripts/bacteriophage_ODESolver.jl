@@ -53,6 +53,43 @@ let
     return [solseries[1,3],sel_sine(par, solseries.t[3])]
 end #JUMP UP OF C is not to do with degeneracy at -1
 
+
+#Why is C going above 1
+
+#Next check change the solver
+let  #default - auto so picks Rosenbrock23 but this has tolerances of 1e-2
+    par = BacPhageSineForcedPar()
+    par.b = 0.02
+    par.per = 0.1
+    par.amp= 1.0
+    u0 = [0.5]
+    tspan=(0.0, 500.0)
+    prob = ODEProblem(bacphage_sine_forced_ver1!, u0, tspan, par)
+    sol = solve(prob)
+    return sol.alg
+end 
+
+
+let  #Rodas5
+    par = BacPhageSineForcedPar()
+    par.b = 0.02
+    par.per = 0.1
+    par.amp= 1.0
+    u0 = [0.5]
+    tspan=(0.0, 500.0)
+    prob = ODEProblem(bacphage_sine_forced_ver1!, u0, tspan, par)
+    sol = solve(prob, Rodas5())
+    solseries = sol(0.0:1.0:300.0)
+    test = figure()
+    plot(solseries.t, solseries.u)
+    plot(solseries.t, [sel_sine(par, t) for t in solseries.t])
+    ylim(-1,1.6)
+    xlabel("Time (t)")
+    ylabel("Ĉ & s")
+    return test
+end 
+#Rodas5 looks to be the best (for the moment)
+
 let
     par = BacPhageSinePar()
     par.b = 0.01
@@ -77,17 +114,15 @@ let
     return test
 end
 
-#Why is C going above 1
 
-#Next check change the solver
 
 
 #Version 2 problems
 
 #why is s C (1-C) settling at 1.0 even though s is cycling
 
-let
-    par = BacPhageSine2Par()
+let #default
+    par = BacPhageSineForcedPar()
     par.b = 0.01
     par.per = 0.2
     par.amp= 0.5
@@ -100,15 +135,43 @@ let
 
     # cb = DiscreteCallback(condition, returnC!)
 
-    prob = ODEProblem(bacphage_sine2!, u0, tspan, par)
+    prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
     sol = solve(prob)
     solseries = sol(0.0:1.0:300.0)
+    println(sol.alg)
     test = figure()
     plot(solseries.t, solseries.u)
     plot(solseries.t, [sel_sine(par, t) for t in solseries.t])
     ylim(-1,1.6)
     return test
 end
+
+let #default
+    par = BacPhageSineForcedPar()
+    par.b = 0.01
+    par.per = 0.2
+    par.amp= 0.5
+    u0 = [0.5]
+    tspan=(0.0, 500.0)
+    # condition(u,t,integrator) = integrator.u[1] > 1.0
+    # function returnC!(integrator)
+    #     integrator.u[1] = 0.999999999999999
+    # end
+
+    # cb = DiscreteCallback(condition, returnC!)
+
+    prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+    sol = solve(prob, Rodas4P())
+    solseries = sol(0.0:1.0:300.0)
+    println(sol.alg)
+    test = figure()
+    plot(solseries.t, solseries.u)
+    plot(solseries.t, [sel_sine(par, t) for t in solseries.t])
+    ylim(-1,1.6)
+    return test
+end
+
+
 
 #why are we getting C values above 1
 #could we fix the C values above 1 by using discretecallback to return to 1 if above 1 - (maybe 0.99999999)
