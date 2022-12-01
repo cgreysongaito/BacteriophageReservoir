@@ -78,7 +78,8 @@ end
 end
 
 function sel_sine(p, t)
-    return p.amp * sin(p.per * t)
+    @unpack amp, per = p
+    return amp * sin(per * t)
 end
 
 function bacphage_sine_internal_ver1!(du, u, p, t,)
