@@ -1,18 +1,23 @@
+#Helper functions
 function abpath()
     replace(@__DIR__, "scripts" => "")
 end
 
+function vector_prod(sol)
+    soldata=zeros(length(sol))
+    seldata=zeros(length(sol))
+    for i in 1:length(sol)
+        soldata[i] = sol[i][1]
+        seldata[i] = sol[i][2]
+    end
+    return [soldata, seldata]
+end
+
+#Basic model
 @with_kw mutable struct BacPhagePar
     r = 0.1
     s = 0.1
     b = 0.01
-end
-
-@with_kw mutable struct BacPhageSinePar
-    r = 0.1
-    b = 0.01
-    per = 0.5
-    amp = 1.0
 end
 
 function bacphage!(du, u, p, t,)
@@ -27,35 +32,106 @@ function bacphage_wobac!(du, u, p, t,)
     return
 end #can probably remove this and just change the b parameter to zero
 
-function bacphage_sine!(du, u, p, t,)
+
+#Equilibrium and bifurcation functions
+function equil_ver1(s, b::Float64=0.01)
+    r = BacPhagePar().r
+    if s > (-(b+r))/(b+r+1)
+        return 1
+    else
+        return (-(b*s + r + s) - sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s)
+    end
+end
+
+# function equil_ver2(s, b::Float64=0.01)
+#     r = BacPhagePar().r
+#     if s > #NEEDS TO BE UPDATED
+#         return 1
+#     else
+#         return #NEEDS TO BE UPDATED
+#     end
+# end
+
+# function bifurc_ver1(par)
+#     @unpack 
+# end
+
+function bifurc_ver2(par)
+    @unpack b, r = par
+    return -b - r
+end
+
+#With sine environmental selection
+@with_kw mutable struct BacPhageSineInternalPar
+    r = 0.1
+    b = 0.01
+    per = 0.5
+    amp = 1.0
+end
+
+@with_kw mutable struct BacPhageSineForcedPar
+    r = 0.1
+    b = 0.01
+    per = 0.5
+    amp = 1.0
+    selec::Function = sel_sine
+end
+
+function sel_sine(p, t)
+    return p.amp * sin(p.per * t)
+end
+
+function bacphage_sine_internal_ver1!(du, u, p, t,)
     @unpack r, b, per, amp = p
     C , S  = u
-    # du[1] = r * C * (1 - C) + ( S / ( 1 + S * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
+    du[1] = r * C * (1 - C) + ( S / ( 1 + S * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
+    du[2] = amp * per * cos(per * t)
+    return
+end
+
+function bacphage_sine_internal_ver2!(du, u, p, t,)
+    @unpack r, b, per, amp = p
+    C , S  = u
     du[1] = r * C * (1 - C) +  S * C * ( 1 - C ) + b * ( 1 - C )
     du[2] = amp * per * cos(per * t)
     return
 end
 
-function bacphage_sine_sol(b, per, amp, tsend, tvals)
-    par = BacPhageSinePar()
-    par.b = b
-    par.per = per
-    par.amp = amp
-    u0 = [0.5, 0.0]
-    tspan=(0.0, tsend)
-    prob = ODEProblem(bacphage_sine!, u0, tspan, par)
-    sol = solve(prob)
-    return solend = sol(tvals)
+function bacphage_sine_forced_ver1!(du, u, p, t,)
+    @unpack r, b, per, amp = p
+    s = p.selec(p,t)
+    du[1] = r * u[1] * (1 - u[1]) + ( s / ( 1 + s * u[1] ) ) * u[1] * ( 1 - u[1] ) + b * ( 1 - u[1] )
+    return
 end
 
-let
-    data = bacphage_sine_sol(0.01, 0.7, 1.0, 500, 0.0:1.0:100)
-    test = figure()
-    plot(data.t, data.u)
-    return test
+function bacphage_sine_forced_ver2!(du, u, p, t,)
+    @unpack r, b, per, amp = p
+    s = p.selec(p,t)
+    du[1] = r * u[1] * (1 - u[1]) + (s * u[1] * ( 1 - u[1] )) + b * ( 1 - u[1] )
+    return
 end
 
+# function bacphage_sine_sol(b, per, amp, tsend, tvals)
+#     par = BacPhageSinePar()
+#     par.b = b
+#     par.per = per
+#     par.amp = amp
+#     u0 = [0.5, 0.0]
+#     tspan=(0.0, tsend)
+#     prob = ODEProblem(bacphage_sine!, u0, tspan, par)
+#     sol = solve(prob)
+#     return solend = sol(tvals)
+# end
 
+# let
+#     data = bacphage_sine_sol(0.01, 0.7, 1.0, 500, 0.0:1.0:100)
+#     test = figure()
+#     plot(data.t, data.u)
+#     return test
+# end
+
+
+#Noise environmental selection
 
 function noise_creation(r, len)
     white = rand(Normal(0.0, 0.5), Int64(len))
@@ -92,73 +168,3 @@ function bacphage_pert_sol(b, u0, freq, r, seed, tsend, tvals)
     return [[i,j] for (i,j) in zip(solend[1,:], noise[100:500])]
 end
 
-function equil(s, b::Float64=0.01)
-    r = BacPhagePar().r
-    if s > (-(b+r))/(b+r+1)
-        return 1
-    else
-        return (-(b*s + r + s) - sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s)
-    end
-end
-
-
-function vector_prod(sol)
-    soldata=zeros(length(sol))
-    seldata=zeros(length(sol))
-    for i in 1:length(sol)
-        soldata[i] = sol[i][1]
-        seldata[i] = sol[i][2]
-    end
-    return [soldata, seldata]
-end
-
-
-#Attempt 2 for sine wave solving (function in parameter set)
-function sel_sine(p, t)
-    return p.amp * sin(p.per * t)
-end
-
-@with_kw mutable struct BacPhageSine2Par
-    r = 0.1
-    b = 0.01
-    per = 0.5
-    amp = 1.0
-    selec::Function = sel_sine
-end
-
-function bacphage_sine2!(du, u, p, t,)
-    @unpack r, b, per, amp = p
-    s = p.selec(p,t)
-    # du[1] = r * u[1] * (1 - u[1]) + ( s / ( 1 + s * u[1] ) ) * u[1] * ( 1 - u[1] ) + b * ( 1 - u[1] )
-    du[1] = r * u[1] * (1 - u[1]) + (s * u[1] * ( 1 - u[1] )) + b * ( 1 - u[1] )
-    return
-end
-
-#why is s C (1-C) settling at 1.0 even though s is cycling
-
-let
-    par = BacPhageSine2Par()
-    par.b = 0.01
-    par.per = 0.2
-    par.amp= 0.5
-    u0 = [0.5]
-    tspan=(0.0, 500.0)
-    # condition(u,t,integrator) = integrator.u[1] > 1.0
-    # function returnC!(integrator)
-    #     integrator.u[1] = 0.999999999999999
-    # end
-
-    # cb = DiscreteCallback(condition, returnC!)
-
-    prob = ODEProblem(bacphage_sine2!, u0, tspan, par)
-    sol = solve(prob)
-    solseries = sol(0.0:1.0:300.0)
-    test = figure()
-    plot(solseries.t, solseries.u)
-    plot(solseries.t, [sel_sine(par, t) for t in solseries.t])
-    ylim(-1,1.6)
-    return test
-end
-
-#why are we getting C values above 1
-#could we fix the C values above 1 by using discretecallback to return to 1 if above 1 - (maybe 0.99999999)
