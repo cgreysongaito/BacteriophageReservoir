@@ -52,9 +52,10 @@ end
 #     end
 # end
 
-# function bifurc_ver1(par)
-#     @unpack 
-# end
+function bifurc_ver1(par)
+    @unpack b, r = par
+    return -(b+r)/(b+r+1)
+end
 
 function bifurc_ver2(par)
     @unpack b, r = par
@@ -74,12 +75,13 @@ end
     b = 0.01
     per = 0.5
     amp = 1.0
+    mid = 0.0
     selec::Function = sel_sine
 end
 
 function sel_sine(p, t)
-    @unpack amp, per = p
-    return amp * sin(per * t)
+    @unpack amp, per, mid = p
+    return amp * sin(per * t) + mid
 end
 
 function bacphage_sine_internal_ver1!(du, u, p, t,)

@@ -146,22 +146,35 @@ let #default
     return test
 end
 
-let #default
+let #Rodas5
     par = BacPhageSineForcedPar()
     par.b = 0.01
     par.per = 0.2
     par.amp= 0.5
+    par.mid = 0.0
     u0 = [0.5]
     tspan=(0.0, 500.0)
-    # condition(u,t,integrator) = integrator.u[1] > 1.0
-    # function returnC!(integrator)
-    #     integrator.u[1] = 0.999999999999999
-    # end
-
-    # cb = DiscreteCallback(condition, returnC!)
-
     prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
-    sol = solve(prob, Rodas4P())
+    sol = solve(prob, Rodas5())
+    solseries = sol(0.0:1.0:300.0)
+    println(sol.alg)
+    test = figure()
+    plot(solseries.t, solseries.u)
+    plot(solseries.t, [sel_sine(par, t) for t in solseries.t])
+    ylim(-1,1.6)
+    return test
+end
+
+let #Rodas5
+    par = BacPhageSineForcedPar()
+    par.b = 0.01
+    par.per = 0.2
+    par.amp= 0.5
+    par.mid = +(0.11-0.099099099)
+    u0 = [0.5]
+    tspan=(0.0, 500.0)
+    prob = ODEProblem(bacphage_sine_forced_ver1!, u0, tspan, par)
+    sol = solve(prob, Rodas5())
     solseries = sol(0.0:1.0:300.0)
     println(sol.alg)
     test = figure()
@@ -172,6 +185,79 @@ let #default
 end
 
 
+let #Rodas5
+    par = BacPhageSineForcedPar()
+    par.b = 0.01
+    par.per = 0.1
+    par.amp= 0.5
+    par.mid = -0.1
+    u0 = [0.5]
+    tspan=(0.0, 500.0)
+    prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+    sol = solve(prob, Rodas5())
+    solseries = sol(0.0:1.0:300.0)
+    println(sol.alg)
+    test = figure()
+    plot(solseries.t, solseries.u)
+    plot(solseries.t, [sel_sine(par, t) for t in solseries.t])
+    ylim(-1,1.6)
+    return test
+end
 
-#why are we getting C values above 1
-#could we fix the C values above 1 by using discretecallback to return to 1 if above 1 - (maybe 0.99999999)
+#why does version one fluctuate consistently whereas version two does not fluctuate
+
+
+bifurc_ver1(BacPhageSineForcedPar())
+bifurc_ver2(BacPhageSineForcedPar())
+
+#Comparing whether c goes above 1 in each version
+let #Rodas5
+    par = BacPhageSineForcedPar()
+    par.b = 0.01
+    par.per = 0.2
+    par.amp= 0.5
+    par.mid = +(0.11-0.099099099)
+    u0 = [0.5]
+    tspan=(0.0, 500.0)
+    prob = ODEProblem(bacphage_sine_forced_ver1!, u0, tspan, par)
+    sol = solve(prob, Rodas5())
+    solseries = sol(40.0:1.0:50.0)
+    return solseries
+end
+
+let #Rodas5
+    par = BacPhageSineForcedPar()
+    par.b = 0.01
+    par.per = 0.2
+    par.amp= 0.5
+    par.mid = 0.0
+    u0 = [0.5]
+    tspan=(0.0, 500.0)
+    prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+    sol = solve(prob, Rodas5())
+    solseries = sol(50.0:1.0:100.0)
+    return solseries
+end
+# version 2 does not go above 1
+
+#check eigenvalues of 1 fixed point as change selection for version 1 and version 2
+#version 1
+function eigen1_ver1(s, par)
+    @unpack b, r = par
+    return (-b*s - b - r*s - r - s)/(s+1)
+end
+
+function eigen1_ver2(s, par)
+    @unpack b, r = par
+    return - 2 * r - 2 * s - b + r + s
+end
+
+let 
+    srange = -0.5:0.01:1.00
+    data_ver1 = [eigen1_ver1(s, BacPhageSineForcedPar()) for s in srange]
+    data_ver2 = [eigen1_ver2(s, BacPhageSineForcedPar()) for s in srange]
+    test = figure()
+    plot(srange, data_ver1, color = "blue")
+    plot(srange, data_ver2, color = "red")
+    return test
+end
