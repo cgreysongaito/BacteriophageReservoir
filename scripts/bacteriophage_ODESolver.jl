@@ -249,15 +249,78 @@ end
 
 function eigen1_ver2(s, par)
     @unpack b, r = par
-    return - 2 * r - 2 * s - b + r + s
+    return - b - r - s
 end
 
 let 
     srange = -0.5:0.01:1.00
-    data_ver1 = [eigen1_ver1(s, BacPhageSineForcedPar()) for s in srange]
+    data_ver1a = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.0)) for s in srange]
+    data_ver1b = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.04)) for s in srange]
+    data_ver1c = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.08)) for s in srange]
     data_ver2 = [eigen1_ver2(s, BacPhageSineForcedPar()) for s in srange]
     test = figure()
-    plot(srange, data_ver1, color = "blue")
+    plot(srange, data_ver1a, color = "blue")
+    plot(srange, data_ver1b, color = "green")
+    plot(srange, data_ver1c, color = "purple")
     plot(srange, data_ver2, color = "red")
+    xlabel("s")
+    ylabel("λ")
     return test
+end
+#b just shifts where the eigenvalue line sits but does not flatten the graph
+
+let 
+    srange = -0.5:0.01:1.00
+    data_ver1a = [eigen1_ver1(s, BacPhageSineForcedPar()) for s in srange]
+    data_ver1b = [eigen1_ver1(s, BacPhageSineForcedPar(r=0.2)) for s in srange]
+    data_ver1c = [eigen1_ver1(s, BacPhageSineForcedPar(r=0.3)) for s in srange]
+    data_ver2 = [eigen1_ver2(s, BacPhageSineForcedPar()) for s in srange]
+    test = figure()
+    plot(srange, data_ver1a, color = "blue")
+    plot(srange, data_ver1b, color = "green")
+    plot(srange, data_ver1c, color = "purple")
+    plot(srange, data_ver2, color = "red")
+    xlabel("s")
+    ylabel("λ")
+    return test
+end
+#r also doesn't flatten the eigenvalue line, just shifts the line
+
+
+#why does version 2 go to fixation or 0 (can it ever find oscilating "attractor")?
+#version 1 can go to fixation just different point where this happens - so 
+#next step figure out way to find bifurcation values of different qualitative behaviours for version 1 and version 2
+#maybe "bifrucation" is dependent of delay of system state matching equilibrium (i.e if we make the delay longer then quicker to fixation OR if we flatten the equilibria line then also quicker to fixation)
+let #Rodas5
+    par = BacPhageSineForcedPar()
+    par.b = 0.02
+    par.per = 0.2
+    par.amp= 0.5
+    par.mid = 0.00
+    u0 = [0.5]
+    tspan=(0.0, 500.0)
+    prob = ODEProblem(bacphage_sine_forced_ver1!, u0, tspan, par)
+    sol = solve(prob, Rodas5())
+    solseries = sol(50.0:1.0:500.0)
+    test = figure()
+    plot(solseries.t, solseries.u)
+    plot(solseries.t, [sel_sine(par, t) for t in solseries.t])
+    hlines(bifurc_ver1(par), 50.0, 500.0, colors="green" )
+    ylim(-1,1.6)
+    return test
+end
+
+
+let #Rodas5
+    par = BacPhageSineForcedPar()
+    par.b = 0.01
+    par.per = 0.2
+    par.amp= 0.5
+    par.mid = 0.0
+    u0 = [0.5]
+    tspan=(0.0, 500.0)
+    prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+    sol = solve(prob, Rodas5())
+    solseries = sol(50.0:1.0:500.0)
+    return solseries
 end
