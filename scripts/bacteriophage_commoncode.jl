@@ -34,8 +34,8 @@ end #can probably remove this and just change the b parameter to zero
 
 
 #Equilibrium and bifurcation functions
-function equil_ver1(s, b::Float64=0.01)
-    r = BacPhagePar().r
+function stableequil_ver1(s, par)
+    @unpack b, r = par
     if s > (-(b+r))/(b+r+1)
         return 1
     else
@@ -43,14 +43,24 @@ function equil_ver1(s, b::Float64=0.01)
     end
 end
 
-# function equil_ver2(s, b::Float64=0.01)
-#     r = BacPhagePar().r
-#     if s > #NEEDS TO BE UPDATED
-#         return 1
-#     else
-#         return #NEEDS TO BE UPDATED
-#     end
-# end
+function interior_equil_ver1(s, par)
+    @unpack b, r = par
+    return (-(b*s + r + s) - sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s)
+end
+
+function stableequil_ver2(s, par)
+    @unpack b, r = par
+    if s > -b - r
+        return 1
+    else
+        return -b / (r+s)
+    end
+end
+
+function interior_equil_ver2(s, par)
+    @unpack b, r = par
+    return -b / (r+s)
+end
 
 function bifurc_ver1(par)
     @unpack b, r = par

@@ -300,13 +300,10 @@ end
 let 
     srange = -0.5:0.01:1.00
     data_ver1a = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.0)) for s in srange]
-    data_ver1b = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.04)) for s in srange]
-    data_ver1c = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.08)) for s in srange]
     data_ver2 = [eigen1_ver2(s, BacPhageSineForcedPar()) for s in srange]
     test = figure()
     plot(srange, data_ver1a, color = "blue")
-    plot(srange, data_ver1b, color = "green")
-    plot(srange, data_ver1c, color = "purple")
+
     plot(srange, data_ver2, color = "red")
     hlines(0.0, -0.5, 1.00)
     xlabel("s")
@@ -315,20 +312,39 @@ let
 end
 #b just shifts where the eigenvalue line sits but does not flatten the graph
 
+
 let 
     srange = -0.5:0.01:1.00
-    data_ver1a = [eigen1_ver1(s, BacPhageSineForcedPar()) for s in srange]
-    data_ver1b = [eigen1_ver1(s, BacPhageSineForcedPar(r=0.2)) for s in srange]
-    data_ver1c = [eigen1_ver1(s, BacPhageSineForcedPar(r=0.3)) for s in srange]
+    data_ver1a = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.01)) for s in srange]
     data_ver2 = [eigen1_ver2(s, BacPhageSineForcedPar()) for s in srange]
     test = figure()
-    plot(srange, data_ver1a, color = "blue")
-    plot(srange, data_ver1b, color = "green")
-    plot(srange, data_ver1c, color = "purple")
-    plot(srange, data_ver2, color = "red")
+    plot(srange, data_ver1a, color = "blue", label="Nonlinear")
+    plot(srange, data_ver2, color = "red", label="Linear")
+    hlines(0.0, -0.5, 1.00, linestyles = "dashed")
     xlabel("s")
     ylabel("λ")
-    return test
+    legend()
+    title("Eigenvalue for Ĉ = 1")
+    # return test
+    savefig(joinpath(abpath(), "figs/selectionfunction_eigenvalues1.png"))
+end
+
+let 
+    srange = -0.5:0.01:1.00
+    data_ver1a = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.0)) for s in srange]
+    data_ver1b = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.04)) for s in srange]
+    data_ver1c = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.08)) for s in srange]    
+    test = figure()
+    plot(srange, data_ver1a, color = "blue", label = "b = 0.00")
+    plot(srange, data_ver1b, color = "green", label = "b = 0.04")
+    plot(srange, data_ver1c, color = "purple", label = "b = 0.08")
+    hlines(0.0, -0.5, 1.00, linestyles = "dashed")
+    xlabel("s")
+    ylabel("λ")
+    legend()
+    title("Eigenvalue for Ĉ = 1")
+    # return test
+    savefig(joinpath(abpath(), "figs/selectionfunction_eigenvalues1b.png"))
 end
 #r also doesn't flatten the eigenvalue line, just shifts the line
 
@@ -378,10 +394,81 @@ let #Rodas5
 end
 
 
-## PROOF 1 #I should be able to show that b/r never affects delay due to the eigenvalue function just shifting but not flattening.
+## PROOF 1 #I should be able to show that b/r never affects delay due to the eigenvalue function just shifting but not flattening.  #ACTUALLY b does affect delay - just very small
 #So yes 1 fixed point - dynamics move off 1 earlier when b is smaller but overall trough in dynamics I think is the smaller (but should check this with higher resolution)
 #look at the speed of down and up (with same sine wave) 
 #draw equilibria on graph
+let #Rodas5
+    par1 = BacPhageSineForcedPar(b = 0.01, per=0.2, amp=0.5, mid=0.0)
+    par2 = BacPhageSineForcedPar(b = 0.04, per=0.2, amp=0.5, mid=0.0)
+    u0 = [0.5]
+    tspan=(0.0, 500.0)
+    prob1 = ODEProblem(bacphage_sine_forced_ver1!, u0, tspan, par1)
+    sol1 = solve(prob1, Rodas5())
+    solseries1 = sol1(50.0:0.05:100.0)
+    prob2 = ODEProblem(bacphage_sine_forced_ver1!, u0, tspan, par2)
+    sol2 = solve(prob2, Rodas5())
+    solseries2 = sol2(50.0:0.05:100.0)
+    sel = [sel_sine(par1, t) for t in solseries1.t]
+    equil1 = [equil_ver1(s, par1.b) for s in sel]
+    equil2 = [equil_ver1(s, par2.b) for s in sel]
+    test = figure()
+    plot(solseries1.t, solseries1.u, color="green", label = "b=0.01")
+    plot(solseries2.t, solseries2.u, color="red", label = "b=0.04")
+    plot(solseries1.t, equil1, color="green", linestyle="dashed")
+    plot(solseries2.t, equil2, color="red", linestyle="dashed")
+    ylim(-0.1,1.1)
+    legend()
+    # return test
+    savefig(joinpath(abpath(), "figs/delay_bvalues.png"))
+end
+
+
+let 
+    st = -1.0
+    en = 1.0 
+    srange = st:0.0001:en
+    data1 = [interior_equil_ver1(s, BacPhagePar()) for s in srange]
+    data2 = [interior_equil_ver1(s, BacPhagePar(b=0.02)) for s in srange]
+    data3 = [interior_equil_ver1(s, BacPhagePar(b=0.09)) for s in srange]
+    bifurcplot = figure(figsize=(5,4))
+    plot(srange, data1, color = "blue", label = "b = 0.01")
+    plot(srange, data2, color = "green", label = "b = 0.02")
+    plot(srange, data3, color = "red", label = "b = 0.09")
+    ylabel("Ĉ")
+    xlabel("s")
+    xlim(-1.00, 1.0)
+    ylim(0, 1)
+    hlines(0.0, st, en, linestyles="dashed", colors= "black")
+    hlines(1.0, st, en, colors= "black")
+    legend()
+    title("Non-Linear Selection Function")
+    # return bifurcplot
+    savefig(joinpath(abpath(), "figs/bifurcver1_changingb.png"))
+end
+
+let 
+    st = -1.0
+    en = 1.0 
+    srange = st:0.0001:en
+    data1 = [interior_equil_ver2(s, BacPhagePar()) for s in srange]
+    data2 = [interior_equil_ver2(s, BacPhagePar(b=0.02)) for s in srange]
+    data3 = [interior_equil_ver2(s, BacPhagePar(b=0.09)) for s in srange]
+    bifurcplot = figure(figsize=(5,4))
+    plot(srange, data1, color = "blue", label = "b = 0.01")
+    plot(srange, data2, color = "green", label = "b = 0.02")
+    plot(srange, data3, color = "red", label = "b = 0.09")
+    ylabel("Ĉ")
+    xlabel("s")
+    xlim(-1.00, 1.0)
+    ylim(0, 1)
+    hlines(0.0, st, en, linestyles="dashed", colors= "black")
+    hlines(1.0, st, en, colors= "black")
+    legend()
+    title("Linear Selection Function")
+    # return bifurcplot
+    savefig(joinpath(abpath(), "figs/bifurcver2_changingb.png"))
+end
 
 ## PROOF 2 ##next step figure out way to find bifurcation values of different qualitative behaviours for version 1 and version 2
 #THEN GENERALIZE FOR white and red noise
