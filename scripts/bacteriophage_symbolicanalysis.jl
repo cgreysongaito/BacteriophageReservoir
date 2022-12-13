@@ -2,11 +2,13 @@ include("packages.jl")
 include("bacteriophage_commoncode.jl")
 
 ## Symbolic analysis
-@vars C
 
-@vars r s b γ
+
+## Version 1 - nonlinear selection function
 
 # Without lysogeny
+@vars C
+@vars r s b
 f(C) = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C )
 
 SymPy.solve(f(C), C)
@@ -72,6 +74,9 @@ let
 end
 
 # With lysogeny - assuming r is tiny (0)
+@vars C
+@vars r s b
+
 h(C) = ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
 
 SymPy.solve(h(C), C)
@@ -217,6 +222,8 @@ let
 end
 
 # With lysogeny
+@vars C
+@vars r s b
 g(C) = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
 
 SymPy.solve(g(C), C)
@@ -337,8 +344,8 @@ for i in 1:length(-1:0.0001:1)
 end
 
 let 
-    st = -1.0
-    en = 1.0 
+    st = -0.5
+    en = 0.5 
     srange = st:0.0001:en
     data = [equilwlr(s, BacPhagePar()) for s in srange]
     eq1 = zeros(length(srange))
@@ -352,27 +359,27 @@ let
     plot(srange, eq2, color = "blue")
     ylabel("Ĉ")
     xlabel("s")
-    ylim(-30, 30)
+    ylim(-1, 1)
     hlines(0.0, st, en, linestyles="dashed", colors= "black")
     hlines(1.0, st, en, colors= "black")
-    # return bifurcplot
-    savefig(joinpath(abpath(), "figs/bifurcwlr.png"))
+    return bifurcplot
+    # savefig(joinpath(abpath(), "figs/bifurcwlr.png"))
 end
 
-let 
-    st = -1.0
-    en = 1.0 
+let #changing b
+    st = -0.5
+    en = 0.5
     srange = st:0.0001:en
-    data1 = [bioequilwlr(s, BacPhagePar()) for s in srange]
-    data2 = [bioequilwlr(s, BacPhagePar(b=0.02)) for s in srange]
-    data3 = [bioequilwlr(s, BacPhagePar(b=0.09)) for s in srange]
+    data1 = [bioequilwlr(s, BacPhagePar(b=0.0001)) for s in srange]
+    data2 = [bioequilwlr(s, BacPhagePar(b=0.001)) for s in srange]
+    data3 = [bioequilwlr(s, BacPhagePar(b=0.01)) for s in srange]
     bifurcplot = figure(figsize=(5,4))
     plot(srange, data1, color = "blue")
     plot(srange, data2, color = "green")
     plot(srange, data3, color = "red")
     ylabel("Ĉ")
     xlabel("s")
-    xlim(-1.00, 0.2)
+    xlim(-0.5, 0.5)
     ylim(0, 1)
     hlines(0.0, st, en, linestyles="dashed", colors= "black")
     hlines(1.0, st, en, colors= "black")
@@ -381,7 +388,52 @@ let
 end
 
 
-#trying bifurcation of s with linear asexual reproduction function
+let #changing r
+    st = -0.2
+    en = 0.2
+    srange = st:0.0001:en
+    data1 = [bioequilwlr(s, BacPhagePar(r=0.00001)) for s in srange]
+    data2 = [bioequilwlr(s, BacPhagePar(r=0.0001)) for s in srange]
+    data3 = [bioequilwlr(s, BacPhagePar(r=0.01)) for s in srange]
+    bifurcplot = figure(figsize=(5,4))
+    plot(srange, data1, color = "blue")
+    plot(srange, data2, color = "green")
+    plot(srange, data3, color = "red")
+    ylabel("Ĉ")
+    xlabel("s")
+    xlim(-0.05, 0.05)
+    ylim(0, 1)
+    hlines(0.0, st, en, linestyles="dashed", colors= "black")
+    hlines(1.0, st, en, colors= "black")
+    return bifurcplot
+    # savefig(joinpath(abpath(), "figs/bifurcwlr_changingb.png"))
+end
+
+
+### Version 2 - linear selection function
+## With lysogeny without conjugation
+function bifurcwlwor_lin(s, p)
+    @unpack b, r = p
+    return -b / s
+end
+
+let 
+    st = -1.0
+    en = 1.0 
+    srange = st:0.0001:en
+    data = [bifurcwlwor_lin(s, BacPhagePar()) for s in srange]
+    bifurcplot = figure(figsize=(5,5))
+    plot(srange, data)
+    ylabel("Ĉ")
+    xlabel("s")
+    ylim(-1.1, 1.1)
+    hlines(0.0, st, en, linestyles="dashed", colors= "black")
+    hlines(1.0, st, en, colors= "black")
+    return bifurcplot
+    # savefig(joinpath(abpath(), "figs/bifurcwlrtiny.png"))
+end
+
+##With lysogeny and conjugation
 @vars r s b
 @vars C
 g(C) = r * C * (1 - C) +  s * C * ( 1 - C ) + b * ( 1 - C )
@@ -422,105 +474,6 @@ let
 end
 
 
-#Horizontal Gene Transfer
-
-function hgt(C, p)
-    @unpack r, b = p
-    return 100 * (r * C * ( 1 - C) + b * (1 - C))
-end
-
-let
-    Crange = 0.0:0.01:1.0
-    data1 = [hgt(C, BacPhagePar()) for C in Crange]
-    test = figure()
-    plot(Crange, data1)
-    ylabel("HGT")
-    xlabel("C")
-    # return test
-    savefig(joinpath(abpath(), "figs/HGT.png"))
-end
-
-# Selection function exploration
-function conjug(C, r)
-    # @unpack r = p
-    return r * C #* (1-C)
-end
-
-let 
-    Crange = 0.0:0.01:1.0
-    data = [conjug(C, -0.1) for C in Crange]
-    test = figure()
-    plot(Crange, data)
-    return test
-end
-
-function sel(C, p)
-    @unpack s = p
-    return (( s * C ) / ( 1 + s * C)) * (1 - C)
-
-end
-
-function sel2(C, half)
-    #@unpack s = p
-    return (1  / ( half + C))# *(1-C)
-end
-
-
-t(C) = (C  / ( (1/s) + C)) *(1-C)
-SymPy.solve(diff(t(C),C),C)
-
-let 
-    Crange = 0.0:0.01:1.0
-    data = [sel2(C, 0.5) for C in Crange]
-    test = figure()
-    plot(Crange, data)
-    return test
-end
-
-function sel3(C, s, half)
-    #@unpack s = p
-    return ((s * C) / ( half + C)) *(1-C)
-end
-
-let 
-    Crange = 0.0:0.01:1.0
-    data = [sel3(C, 1, 0.4) for C in Crange]
-    data2 = [sel3(C, 1, 0.1) for C in Crange]
-    data3 = [sel3(C, -0.2, 0.4) for C in Crange]
-    data4 = [sel3(C, -1.0, 0.4) for C in Crange]
-    test = figure()
-    plot(Crange, data)
-    plot(Crange, data2)
-    plot(Crange, data3)
-    plot(Crange, data4)
-    return test
-end
-
-#Simple linear selection function
-
-## With lysogeny without conjugation
-function bifurcwlwor_lin(s, p)
-    @unpack b, r = p
-    return -b / s
-end
-
-let 
-    st = -1.0
-    en = 1.0 
-    srange = st:0.0001:en
-    data = [bifurcwlwor_lin(s, BacPhagePar()) for s in srange]
-    bifurcplot = figure(figsize=(5,5))
-    plot(srange, data)
-    ylabel("Ĉ")
-    xlabel("s")
-    ylim(-1.1, 1.1)
-    hlines(0.0, st, en, linestyles="dashed", colors= "black")
-    hlines(1.0, st, en, colors= "black")
-    return bifurcplot
-    # savefig(joinpath(abpath(), "figs/bifurcwlrtiny.png"))
-end
-
-##With lysogeny and conjugation
 function modelwlr_lin(C, p)
     @unpack s, r, b = p
     return r * C * ( 1 - C ) +  s * C * ( 1 - C ) + b * ( 1 - C )
@@ -619,7 +572,31 @@ let
     # savefig(joinpath(abpath(), "figs/bifurcwlrtiny.png"))
 end
 
-# With lytic taking carrier bacteria out
+
+
+
+### Horizontal Gene Transfer
+
+function hgt(C, p)
+    @unpack r, b = p
+    return 100 * (r * C * ( 1 - C) + b * (1 - C))
+end
+
+let
+    Crange = 0.0:0.01:1.0
+    data1 = [hgt(C, BacPhagePar()) for C in Crange]
+    test = figure()
+    plot(Crange, data1)
+    ylabel("HGT")
+    xlabel("C")
+    # return test
+    savefig(joinpath(abpath(), "figs/HGT.png"))
+end
+
+
+### With lytic taking carrier bacteria out
+@vars C
+@vars r s b γ
 h(C) = r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) - γ * C + b * ( 1 - C )
 
 SymPy.simplify(SymPy.solve(h(C), C))
@@ -663,68 +640,3 @@ let
     return bifurcplot
     # savefig(joinpath(abpath(), "figs/bifurcwlr.png"))
 end
-
-
-#proove conjugation more than bacteriophage
-@vars x
-
-g(x) = -2*(x^3) + 4 * (x^2) -2*x
-
-SymPy.solve(g(x), x)
-
-eq2= 0.1:0.1:1.0
-
-test2 = rand(Float64, (2, 2))
-test2[1,2]
-test2[2,1]
-
-function conj_proof(eq1,eq2)
-    return (2 * eq2 - eq2^2 - 2 * eq1 + eq1^2) / (3 * eq2^2 - 2 * eq2^3 - 3 * eq1^2 + 2 * eq1^3)
-end
-
-conj_proof(0.5,0.6)
-conj_proof(0.6,0.5)
-
-#seems to be symmetrical! what does this mean?
-
-#rows are eq2
-#columns are eq1
-let
-    eq1 = eq2 = 0.1:0.1:1.0
-    test = zeros(10,10)
-    for i in 1:10
-        for j in 1:10
-            test[i,j] = (2 * eq2[i] - eq2[i]^2 - 2 * eq1[j] + eq1[j]^2) / (3 * eq2[i]^2 - 2 * eq2[i]^3 - 3 * eq1[j]^2 + 2 * eq1[j]^3)
-        end
-    end
-    return test
-end
-
-
-function dcdt(C,par)
-    @unpack r, b, s = par
-    return r * C * (1 - C) + ( s / ( 1 + s * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
-end
-
-dcdt(0.4499999, BacPhagePar(s = 0.01))
-
-function dHGTdt(C,dcdtval, par)
-    @unpack r, b = par
-    return 100 * (r * dcdtval - 2 * r * C * dcdtval - b * dcdtval)
-end
-
-dHGTdt(0.449999, dcdt(0.4499999, BacPhagePar(s = 0.01)), BacPhagePar(s = 0.01))
-
-# Time series analysis
-
-
-# "Potential" analysis
-
-#
-
-## Ideas
-# White noise to red noise (selection)
-# sine wave for selection
-#investigate when r and s and l are really small
-# investigate when selection places c equilibrium close to maximum of HGT and away from maximum
-#slow fast analysis (with selection being much slower than growth rates of bacteria)

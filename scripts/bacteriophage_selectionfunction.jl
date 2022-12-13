@@ -120,3 +120,61 @@ end
 
 #As there is more C, the effects of positive s is weaker and the effects of negative s is stronger
 #As there is more C, moves away from linear function.
+
+
+
+# Selection function exploration
+function conjug(C, r)
+    # @unpack r = p
+    return r * C #* (1-C)
+end
+
+let 
+    Crange = 0.0:0.01:1.0
+    data = [conjug(C, -0.1) for C in Crange]
+    test = figure()
+    plot(Crange, data)
+    return test
+end
+
+function sel(C, p)
+    @unpack s = p
+    return (( s * C ) / ( 1 + s * C)) * (1 - C)
+
+end
+
+function sel2(C, half)
+    #@unpack s = p
+    return (1  / ( half + C))# *(1-C)
+end
+
+
+t(C) = (C  / ( (1/s) + C)) *(1-C)
+SymPy.solve(diff(t(C),C),C)
+
+let 
+    Crange = 0.0:0.01:1.0
+    data = [sel2(C, 0.5) for C in Crange]
+    test = figure()
+    plot(Crange, data)
+    return test
+end
+
+function sel3(C, s, half)
+    #@unpack s = p
+    return ((s * C) / ( half + C)) *(1-C)
+end
+
+let 
+    Crange = 0.0:0.01:1.0
+    data = [sel3(C, 1, 0.4) for C in Crange]
+    data2 = [sel3(C, 1, 0.1) for C in Crange]
+    data3 = [sel3(C, -0.2, 0.4) for C in Crange]
+    data4 = [sel3(C, -1.0, 0.4) for C in Crange]
+    test = figure()
+    plot(Crange, data)
+    plot(Crange, data2)
+    plot(Crange, data3)
+    plot(Crange, data4)
+    return test
+end

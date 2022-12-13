@@ -15,9 +15,9 @@ end
 
 #Basic model
 @with_kw mutable struct BacPhagePar
-    r = 0.1
+    r = 0.001 #to match niehus 10^-4 top value
     s = 0.1
-    b = 0.01
+    b = 0.001
 end
 
 function bacphage!(du, u, p, t,)
@@ -123,25 +123,6 @@ function bacphage_sine_forced_ver2!(du, u, p, t,)
     du[1] = r * u[1] * (1 - u[1]) + (s * u[1] * ( 1 - u[1] )) + b * ( 1 - u[1] )
     return
 end
-
-# function bacphage_sine_sol(b, per, amp, tsend, tvals)
-#     par = BacPhageSinePar()
-#     par.b = b
-#     par.per = per
-#     par.amp = amp
-#     u0 = [0.5, 0.0]
-#     tspan=(0.0, tsend)
-#     prob = ODEProblem(bacphage_sine!, u0, tspan, par)
-#     sol = solve(prob)
-#     return solend = sol(tvals)
-# end
-
-# let
-#     data = bacphage_sine_sol(0.01, 0.7, 1.0, 500, 0.0:1.0:100)
-#     test = figure()
-#     plot(data.t, data.u)
-#     return test
-# end
 
 
 #Noise environmental selection
