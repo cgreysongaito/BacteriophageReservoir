@@ -72,6 +72,17 @@ function bifurc_ver2(par)
     return -b - r
 end
 
+#Eigenvalues for equilibrium 1
+function eigen1_ver1(s, par)
+    @unpack b, r = par
+    return (-b*s - b - r*s - r - s)/(s+1)
+end
+
+function eigen1_ver2(s, par)
+    @unpack b, r = par
+    return - b - r - s
+end
+
 #With sine environmental selection
 @with_kw mutable struct BacPhageSineInternalPar
     r = 0.1

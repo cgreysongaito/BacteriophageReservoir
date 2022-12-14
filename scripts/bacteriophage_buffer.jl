@@ -167,15 +167,7 @@ end
 
 #eigenvalues
 #version 1
-function eigen1_ver1(s, par)
-    @unpack b, r = par
-    return (-b*s - b - r*s - r - s)/(s+1)
-end
 
-function eigen1_ver2(s, par)
-    @unpack b, r = par
-    return - b - r - s
-end
 
 let 
     srange = -0.2:0.01:0.1
@@ -262,6 +254,7 @@ let #Rodas5
     prob1 = ODEProblem(bacphage_sine_forced_ver1!, u0, tspan, par1)
     sol1 = solve(prob1, Rodas5())
     solseries1 = sol1(0.0:0.05:800.0)
+
     test = figure()
     plot(solseries1.t, solseries1.u)
     return test
@@ -270,6 +263,103 @@ end
 #looks to be oscilattory attractor always (unless pushed to 1) but amplitude of oscilattory attractor dependent on parameters
 #so periodicity doesn't really affect qualitative pattern (except for the number of oscillations). the eventual end point is the same
 #amplitude and mid point do affect the qualitative patter though (keeping b and r the same)
+
+
+#Best QUESTION - what makes go to fixation versus oscilating attractor?
+let #Rodas5
+    par1 = BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.3, mid=-0.01)
+    u0 = [0.5]
+    tspan=(0.0, 800.0)
+    prob1 = ODEProblem(bacphage_sine_forced_ver1!, u0, tspan, par1)
+    sol1 = solve(prob1, Rodas5())
+    solseries1 = sol1(0.0:0.05:200.0)
+    sel = [sel_sine(par1, t) for t in solseries1.t]
+    equil1 = [stableequil_ver1(s, par1) for s in sel]
+    test = figure()
+    plot(solseries1.t, solseries1.u)
+    plot(solseries1.t, equil1, color="green", linestyle="dashed")
+    return test
+end
+
+let #Rodas5
+    par1 = BacPhageSineForcedPar(b = 0.001, per=0.1, amp=0.3, mid=-0.09999999)
+    u0 = [0.5]
+    tspan=(0.0, 2000.0)
+    prob1 = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par1)
+    sol1 = solve(prob1, Rodas5())
+    solseries1 = sol1(0.0:0.05:2000.0)
+    sel = [sel_sine(par1, t) for t in solseries1.t]
+    equil1 = [stableequil_ver1(s, par1) for s in sel]
+    test = figure()
+    plot(solseries1.t, solseries1.u)
+    plot(solseries1.t, equil1, color="green", linestyle="dashed")
+    return test
+end
+#one difference is that the time spent at 1 is longer for higher mid. (shorter time inbetween 1)
+#wonder whether we can get at speed travelling versus space must travel versus time available?
+
+#do the same analysis with version 2 (below) then examine geometric mean fitness
+bifurc_ver2(BacPhageSineForcedPar(b = 0.001, per=0.1, amp=0.3, mid=-0.09))
+
+
+let 
+    sel1 = [sel_sine(BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.3, mid=-0.01), t) for t in 0.0:0.1:100.0]
+    maxminsel1 = [maximum(sel1), minimum(sel1)]
+    sel2 = [sel_sine(BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.3, mid=-0.06), t) for t in 0.0:0.1:100.0]
+    maxminsel2 = [maximum(sel2), minimum(sel2)]
+    srange = -0.5:0.01:0.5
+    data_ver1a = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.001)) for s in srange]   
+    test = figure()
+    plot(srange, data_ver1a, color = "blue", label = "b = 0.001")
+    vlines(maxminsel1[1], -1, 1, color = "green", linestyles = "dashed")
+    vlines(maxminsel1[2], -1, 1, color = "green", linestyles = "dashed")
+    vlines(maxminsel2[1], -1, 1, color = "red", linestyles = "dashed")
+    vlines(maxminsel2[2], -1, 1, color = "red", linestyles = "dashed")
+    hlines(0.0, -0.5, 0.5, linestyles = "dashed")
+    xlabel("s")
+    ylabel("λ")
+    legend()
+    title("Eigenvalue for Ĉ = 1")
+    return test
+    # savefig(joinpath(abpath(), "figs/selectionfunction_eigenvalues1b.png"))
+end
+
+#maybe when integral of eigenvalues of balance we get balanced oscillation at 1. heavy on 1 side we get fixation. heavy on other side we get oscillator below 1
+#doesn't seem to be balance of integral of eigenvalues because we can fixation when negative integral
+function calc_integral_eigen(par)
+    sel = [sel_sine(par, t) for t in 0.0:0.0001:100.0]
+    maxminsel = [maximum(sel), minimum(sel)]
+    integral, err = quadgk(s -> eigen1_ver1(s, par), maxminsel[2], maxminsel[1])
+    return integral
+end
+
+calc_integral_eigen(BacPhageSineForcedPar(per = 0.2, amp=0.3, mid=-0.065))
+
+bifurc_ver1(BacPhageSineForcedPar(per = 0.2, amp=0.3, mid=-0.065))
+
+function balance_eigen_mid(midrange, par)
+    parnew = par
+    integral = zeros(length(midrange))
+    for i in eachindex(midrange)
+        parnew.mid = midrange[i]
+        sel = [sel_sine(parnew, t) for t in 0.0:0.1:100.0]
+        maxminsel = [maximum(sel), minimum(sel)]
+        integral[i], err = quadgk(s -> eigen1_ver1(s, parnew), maxminsel[2], maxminsel[1]) 
+    end
+    for j in eachindex(integral)
+        if isapprox(0.0, integral[j], atol=0.0001)
+            return [midrange[j],integral[j]]
+        end
+    end
+end
+
+balance_eigen_mid(-0.2:0.00001:0.2, BacPhageSineForcedPar(per = 0.2, amp=0.3))
+
+
+quadgk(s -> eigen1_ver1(s, BacPhageSineForcedPar()), -0.3, 0.2)
+
+
+#i wonder if I could calculate the potential function for this model and see how s changes this potential function
 
 function integral_calc_bifurc(data, bifurcvalue)
     integral_sum = 0.0
