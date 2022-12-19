@@ -486,6 +486,54 @@ end
 
 #graph of integral above bifurc value for per and amp
 
+#trying geometric mean of selection (for bifurcation)
+#fixation pattern
+let #Rodas5
+    par1 = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.3, mid=-0.000000001)
+    u0 = [0.5]
+    tspan=(0.0, 800.0)
+    prob1 = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par1)
+    sol1 = solve(prob1, Rodas5())
+    solseries1 = sol1(0.0:0.05:800.0)
+
+    test = figure()
+    plot(solseries1.t, solseries1.u)
+    return test
+end
+
+function geomean(par, a, b)
+    @unpack per, amp, mid = par
+    integral, err = quadgk(t -> log(Complex(sel_sine(par, t))), a, b)
+    return exp((1 / (b-a)) * integral )
+end
+
+function sine_return(per)
+    return 2 * pi / per
+end
+
+geomean(BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.3, mid=-0.000000001), 0.0, 2*sine_return(0.2))
+geomean(BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.3, mid=0.0), 0.0, sine_return(0.2))
+geomean(BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.3, mid=0.000000001), 0.0, 2*sine_return(0.2))
+#oscillation pattern
+let #Rodas5
+    par1 = BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.3, mid=-0.102)
+    u0 = [0.5]
+    tspan=(0.0, 800.0)
+    prob1 = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par1)
+    sol1 = solve(prob1, Rodas5())
+    solseries1 = sol1(0.0:0.05:800.0)
+
+    test = figure()
+    plot(solseries1.t, solseries1.u)
+    return test
+end
+
+geomean(BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.3, mid=-0.102), 0.0, sine_return(0.2))
+geomean(BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.3, mid=0.0), 0.0, sine_return(0.2))
+geomean(BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.3, mid=0.102), 0.0, sine_return(0.2))
+
+
+
 #PROOF 4 GENERALIZE FOR white and red noise
 
 

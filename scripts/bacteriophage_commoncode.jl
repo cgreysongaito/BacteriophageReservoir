@@ -85,15 +85,15 @@ end
 
 #With sine environmental selection
 @with_kw mutable struct BacPhageSineInternalPar
-    r = 0.1
-    b = 0.01
+    r = 0.001 #changed to neihus parameter
+    b = 0.001
     per = 0.5
     amp = 1.0
 end
 
 @with_kw mutable struct BacPhageSineForcedPar
-    r = 0.1
-    b = 0.01
+    r = 0.001 #changed to neihus parameter
+    b = 0.001
     per = 0.5
     amp = 1.0
     mid = 0.0
