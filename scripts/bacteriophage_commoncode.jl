@@ -83,6 +83,13 @@ function eigen1_ver2(s, par)
     return - b - r - s
 end
 
+#Eigenvalues for interior equilibrium
+function eigenint_ver2(s, par)
+    @unpack b, r = par
+    C = interior_equil_ver2(s, par)
+    return -2⋅C⋅r - 2⋅C⋅s - b + r + s
+end
+
 #With sine environmental selection
 @with_kw mutable struct BacPhageSineInternalPar
     r = 0.001 #changed to neihus parameter
