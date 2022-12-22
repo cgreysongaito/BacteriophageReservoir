@@ -90,6 +90,29 @@ function eigenint_ver2(s, par)
     return -2⋅C⋅r - 2⋅C⋅s - b + r + s
 end
 
+
+function calc_integral_eigen1_ver1(par)
+    sel = [sel_sine(par, t) for t in 0.0:0.0001:100.0]
+    maxminsel = [maximum(sel), minimum(sel)]
+    integral, err = quadgk(s -> eigen1_ver1(s, par), maxminsel[2], maxminsel[1])
+    return integral
+end
+
+function calc_integral_eigen1_ver2(par)
+    sel = [sel_sine(par, t) for t in 0.0:0.0001:1000.0]
+    maxminsel = [maximum(sel), minimum(sel)]
+    integral, err = quadgk(s -> eigen1_ver2(s, par), maxminsel[2], maxminsel[1])
+    return integral
+end
+
+function calc_integral_eigenint_ver2(par)
+    sel = [sel_sine(par, t) for t in 0.0:0.0001:1000.0]
+    maxminsel = [maximum(sel), minimum(sel)]
+    integral, err = quadgk(s -> eigenint_ver2(s, par), maxminsel[2], maxminsel[1])
+    return integral
+end
+
+
 #With sine environmental selection
 @with_kw mutable struct BacPhageSineInternalPar
     r = 0.001 #changed to neihus parameter

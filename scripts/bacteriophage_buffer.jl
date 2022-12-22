@@ -326,26 +326,6 @@ end
 
 #maybe when integral of eigenvalues of balance we get balanced oscillation at 1. heavy on 1 side we get fixation. heavy on other side we get oscillator below 1
 #doesn't seem to be balance of integral of eigenvalues because we can fixation when negative integral
-function calc_integral_eigen1_ver1(par)
-    sel = [sel_sine(par, t) for t in 0.0:0.0001:100.0]
-    maxminsel = [maximum(sel), minimum(sel)]
-    integral, err = quadgk(s -> eigen1_ver1(s, par), maxminsel[2], maxminsel[1])
-    return integral
-end
-
-function calc_integral_eigen1_ver2(par)
-    sel = [sel_sine(par, t) for t in 0.0:0.0001:1000.0]
-    maxminsel = [maximum(sel), minimum(sel)]
-    integral, err = quadgk(s -> eigen1_ver2(s, par), maxminsel[2], maxminsel[1])
-    return integral
-end
-
-function calc_integral_eigenint_ver2(par)
-    sel = [sel_sine(par, t) for t in 0.0:0.0001:1000.0]
-    maxminsel = [maximum(sel), minimum(sel)]
-    integral, err = quadgk(s -> eigenint_ver2(s, par), maxminsel[2], maxminsel[1])
-    return integral
-end
 
 calc_integral_eigen(BacPhageSineForcedPar(per = 0.2, amp=0.3, mid=-0.065))
 
@@ -694,90 +674,101 @@ end
 #C=1
 #mid
 function bifurcintegral_eigen1_mid(midrange)
-    par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=-0.01)
-    maxC = zeros(length(midrange))
-    minC = zeros(length(midrange))
-    int = zeros(length(midrange))
+    data = zeros(length(midrange), 3)
     u0=[0.5]
     tspan=(0.0, 10000.0)
-    for midi in eachindex(midrange)
-        par.mid = midrange[midi]
-        int[midi] = calc_integral_eigen1_ver2(par)
+    @threads for midi in eachindex(midrange)
+        par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
+        data[midi, 1] = calc_integral_eigen1_ver2(par)
         prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
         sol = solve(prob, Rodas5())
         solseries = sol(9000.0:1.0:10000.0)
-        maxC[midi] = maximum(solseries)
-        minC[midi] = minimum(solseries)
+        data[midi, 2] = maximum(solseries)
+        data[midi, 3] = minimum(solseries)
     end
-    return [maxC, minC, int]
+    return data
 end
 
 let 
     midrange = -0.01:0.0001:0.001
     data = bifurcintegral_eigen1_mid(midrange)
     test = figure()
-    plot(data[3], data[1])
-    plot(data[3], data[2])
+    plot(data[:, 1], data[:, 2])
+    plot(data[:, 1], data[:, 3])
     return test
 end
 
 #int C
 #mid
+
 function bifurcintegral_eigenint_mid(midrange)
-    par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=-0.01)
-    maxC = zeros(length(midrange))
-    minC = zeros(length(midrange))
-    int = zeros(length(midrange))
+    data = zeros(length(midrange), 3)
     u0=[0.5]
     tspan=(0.0, 10000.0)
-    for midi in eachindex(midrange)
-        par.mid = midrange[midi]
-        int[midi] = calc_integral_eigenint_ver2(par)
+    @threads for midi in eachindex(midrange)
+        par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
+        data[midi, 1] = calc_integral_eigenint_ver2(par)
         prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
         sol = solve(prob, Rodas5())
         solseries = sol(9000.0:1.0:10000.0)
-        maxC[midi] = maximum(solseries)
-        minC[midi] = minimum(solseries)
+        data[midi, 2] = maximum(solseries)
+        data[midi, 3] = minimum(solseries)
     end
-    return [maxC, minC, int]
+    return data
 end
+
 let 
     midrange = -0.01:0.0001:0.001
     data = bifurcintegral_eigenint_mid(midrange)
     test = figure()
-    plot(data[3], data[1])
-    plot(data[3], data[2])
+    plot(data[:, 1], data[:, 2])
+    plot(data[:, 1], data[:, 3])
     return test
 end
 
 #both C
 function bifurcintegral_eigenboth_mid(midrange)
-    par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=-0.01)
     maxC = zeros(length(midrange))
     minC = zeros(length(midrange))
     int = zeros(length(midrange))
     u0=[0.5]
     tspan=(0.0, 10000.0)
-    for midi in eachindex(midrange)
-        par.mid = midrange[midi]
-        int[midi] = calc_integral_eigen1_ver2(par) + calc_integral_eigenint_ver2(par)
+    @threads for midi in eachindex(midrange)
+        par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
+        int[midi] = calc_integral_eigen1_ver2(par) - calc_integral_eigenint_ver2(par)
         prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
         sol = solve(prob, Rodas5())
         solseries = sol(9000.0:1.0:10000.0)
         maxC[midi] = maximum(solseries)
         minC[midi] = minimum(solseries)
     end
-    return [maxC, minC, int]
+    return [int, maxC, minC]
 end
+
 let 
     midrange = -0.01:0.0001:0.001
     data = bifurcintegral_eigenboth_mid(midrange)
     test = figure()
-    plot(data[3], data[1])
-    plot(data[3], data[2])
+    plot(data[1], data[2])
+    plot(data[1], data[3])
     return test
 end #need to look at this visually
 
+let 
+    srange = -0.2:0.01:0.2
+    data1 = [eigen1_ver2(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
+    dataint = [eigenint_ver2(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
+    eigenb = figure()
+    plot(srange, data1, color="blue")
+    plot(srange, dataint, color="green")
+    xlabel("s")
+    ylabel("λ")
+    legend()
+    return eigenb
+end
+
+
+#CHECK IF INITIAL VALUE PROBLEM
 #PROOF 4 GENERALIZE FOR white and red noise
 
 
