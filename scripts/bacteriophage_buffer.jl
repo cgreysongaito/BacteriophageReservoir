@@ -695,6 +695,7 @@ let
     test = figure()
     plot(data[:, 1], data[:, 2])
     plot(data[:, 1], data[:, 3])
+    vlines(0.0, 0.0, 1.0, linestyles="dashed", color="black")
     return test
 end
 
@@ -726,35 +727,7 @@ let
     return test
 end
 
-#both C
-function bifurcintegral_eigenboth_mid(midrange)
-    maxC = zeros(length(midrange))
-    minC = zeros(length(midrange))
-    int = zeros(length(midrange))
-    u0=[0.5]
-    tspan=(0.0, 10000.0)
-    @threads for midi in eachindex(midrange)
-        par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
-        int[midi] = calc_integral_eigen1_ver2(par) - calc_integral_eigenint_ver2(par)
-        prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
-        sol = solve(prob, Rodas5())
-        solseries = sol(9000.0:1.0:10000.0)
-        maxC[midi] = maximum(solseries)
-        minC[midi] = minimum(solseries)
-    end
-    return [int, maxC, minC]
-end
-
-let 
-    midrange = -0.01:0.0001:0.001
-    data = bifurcintegral_eigenboth_mid(midrange)
-    test = figure()
-    plot(data[1], data[2])
-    plot(data[1], data[3])
-    return test
-end #need to look at this visually
-
-let 
+let #eigenvalues are just "conjugates" of each other so adding or subtracting eigenvalue integrals does nothing
     srange = -0.2:0.01:0.2
     data1 = [eigen1_ver2(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
     dataint = [eigenint_ver2(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
@@ -767,6 +740,39 @@ let
     return eigenb
 end
 
+
+#relative time spent on 1 versus interior in a cycle - "bifurcation"
+function time_equil1(par)
+    bifurcval=bifurc_ver2(par)
+    if (bifurcval-par.mid)/par.amp > 1.0
+        return 0.0
+    end
+    t = asin((bifurcval-par.mid)/par.amp)/par.per
+    if t >= pi/par.per
+        diff = t - (pi/per)
+        return (t+diff)/(2*pi/par.per)
+    elseif t < pi/par.per
+        diff = (pi/par.per) - t
+        return ((pi/par.per) - diff - t)/(2*pi/par.per)
+    end
+end
+
+time_equil1(BacPhageSineForcedPar(b = 0.001))
+###NOT SURE IF THIS IS WORKING
+let 
+    par = BacPhageSineForcedPar(b = 0.001)
+    trange = 0.0:0.01:2*pi/par.per
+    data = [sel_sine(par, t) for t in trange]
+    test = figure()
+    plot(trange, data)
+    hlines(bifurc_ver2(par), 0.0, 2*pi/par.per)
+    return test
+end
+
+
+#"bifurcation" integral of sine wave above 0 and above bifurcation (shift sine wave by bifurcation value)
+
+#gemometric mean - "bifucation"
 
 #CHECK IF INITIAL VALUE PROBLEM
 #PROOF 4 GENERALIZE FOR white and red noise
