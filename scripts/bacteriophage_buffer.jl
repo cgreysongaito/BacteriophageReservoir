@@ -744,20 +744,45 @@ end
 #relative time spent on 1 versus interior in a cycle - "bifurcation"
 function time_equil1(par)
     bifurcval=bifurc_ver2(par)
-    if (bifurcval-par.mid)/par.amp > 1.0
+    if (bifurcval-par.mid)/par.amp > 1.0 || (bifurcval-par.mid)/par.amp < -1
         return 0.0
     end
     t = asin((bifurcval-par.mid)/par.amp)/par.per
-    if t >= pi/par.per
-        diff = t - (pi/per)
-        return (t+diff)/(2*pi/par.per)
-    elseif t < pi/par.per
-        diff = (pi/par.per) - t
-        return ((pi/par.per) - diff - t)/(2*pi/par.per)
+    if par.mid > bifurcval
+        return (abs(t)+((pi/par.per)+abs(t)))/(2*pi/par.per)
+    elseif par.mid < bifurcval
+        return (((pi/par.per)-abs(t))-abs(t))/(2*pi/par.per)
+    else
+        return 0.5
     end
 end
 
-time_equil1(BacPhageSineForcedPar(b = 0.001))
+let 
+    bifurc = -0.2
+    xrange = 0.0:0.01:2*pi
+    sinedata1 = [sin(x)+0.0 for x in xrange]
+    sinedata2 = [sin(x)-0.1 for x in xrange]
+    sinedata3 = [sin(x)-0.3 for x in xrange]
+    test = figure()
+    subplot(3,1,1)
+    plot(xrange, sinedata1)
+    hlines(bifurc, 0.0, 2*pi, linestyles = "dashed")
+    hlines(0.0, 0.0, 2*pi)
+    println(bifurc-0.0)
+    subplot(3,1,2)
+    plot(xrange, sinedata2)
+    hlines(bifurc, 0.0, 2*pi, linestyles = "dashed")
+    hlines(-0.1, 0.0, 2*pi)
+    println(bifurc-(-0.1))
+    subplot(3,1,3)
+    plot(xrange, sinedata3)
+    hlines(bifurc, 0.0, 2*pi, linestyles = "dashed")
+    hlines(-0.3, 0.0, 2*pi)
+    println(bifurc-(-0.3))
+    return test
+end
+
+
 ###NOT SURE IF THIS IS WORKING
 let 
     par = BacPhageSineForcedPar(b = 0.001)
