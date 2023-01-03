@@ -22,33 +22,19 @@ end
 
 function bacphage!(du, u, p, t,)
     @unpack r, b, s = p
-    du[1] = r * u[1] * (1 - u[1]) + ( s / ( 1 + s * u[1] ) ) * u[1] * ( 1 - u[1] ) + b * ( 1 - u[1] )
+    du[1] = r * u[1] * (1 - u[1]) +  s * u[1] * ( 1 - u[1] ) + b * ( 1 - u[1] )
     return
 end
 
-function bacphage_wobac!(du, u, p, t,)
-    @unpack r, b, s = p
-    du[1] = r * u[1] * (1 - u[1]) + ( s / ( 1 + s * u[1] ) ) * u[1] * ( 1 - u[1] )
-    return
-end #can probably remove this and just change the b parameter to zero
+# function bacphage_wobac!(du, u, p, t,)
+#     @unpack r, b, s = p
+#     du[1] = r * u[1] * (1 - u[1]) + ( s / ( 1 + s * u[1] ) ) * u[1] * ( 1 - u[1] )
+#     return
+# end #can probably remove this and just change the b parameter to zero
 
 
 #Equilibrium and bifurcation functions
-function stableequil_ver1(s, par)
-    @unpack b, r = par
-    if s > (-(b+r))/(b+r+1)
-        return 1
-    else
-        return (-(b*s + r + s) - sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s)
-    end
-end
-
-function interior_equil_ver1(s, par)
-    @unpack b, r = par
-    return (-(b*s + r + s) - sqrt(b^2*s^2 - 2*b*r*s + 2*b*s^2 + r^2 + 2*r*s + s^2))/(2*r*s)
-end
-
-function stableequil_ver2(s, par)
+function stableequil(s, par)
     @unpack b, r = par
     if s > -b - r
         return 1
@@ -57,55 +43,37 @@ function stableequil_ver2(s, par)
     end
 end
 
-function interior_equil_ver2(s, par)
+function interior_equil(s, par)
     @unpack b, r = par
     return -b / (r+s)
 end
 
-function bifurc_ver1(par)
-    @unpack b, r = par
-    return -(b+r)/(b+r+1)
-end
-
-function bifurc_ver2(par)
+function bifurc(par)
     @unpack b, r = par
     return -b - r
 end
 
 #Eigenvalues for equilibrium 1
-function eigen1_ver1(s, par)
-    @unpack b, r = par
-    return (-b*s - b - r*s - r - s)/(s+1)
-end
-
-function eigen1_ver2(s, par)
+function eigen1(s, par)
     @unpack b, r = par
     return - b - r - s
 end
 
 #Eigenvalues for interior equilibrium
-function eigenint_ver2(s, par)
+function eigenint(s, par)
     @unpack b, r = par
-    C = interior_equil_ver2(s, par)
+    C = interior_equil(s, par)
     return -2⋅C⋅r - 2⋅C⋅s - b + r + s
 end
 
-
-function calc_integral_eigen1_ver1(par)
-    sel = [sel_sine(par, t) for t in 0.0:0.0001:100.0]
-    maxminsel = [maximum(sel), minimum(sel)]
-    integral, err = quadgk(s -> eigen1_ver1(s, par), maxminsel[2], maxminsel[1])
-    return integral
-end
-
-function calc_integral_eigen1_ver2(par)
+function calc_integral_eigen1(par)
     sel = [sel_sine(par, t) for t in 0.0:0.0001:1000.0]
     maxminsel = [maximum(sel), minimum(sel)]
     integral, err = quadgk(s -> eigen1_ver2(s, par), maxminsel[2], maxminsel[1])
     return integral
 end
 
-function calc_integral_eigenint_ver2(par)
+function calc_integral_eigenint(par)
     sel = [sel_sine(par, t) for t in 0.0:0.0001:1000.0]
     maxminsel = [maximum(sel), minimum(sel)]
     integral, err = quadgk(s -> eigenint_ver2(s, par), maxminsel[2], maxminsel[1])
@@ -120,13 +88,6 @@ function geomean_sine(par, a, b)
 end
 
 #With sine environmental selection
-@with_kw mutable struct BacPhageSineInternalPar
-    r = 0.001 #changed to neihus parameter
-    b = 0.001
-    per = 0.5
-    amp = 1.0
-end
-
 @with_kw mutable struct BacPhageSineForcedPar
     r = 0.001 #changed to neihus parameter
     b = 0.001
@@ -141,30 +102,7 @@ function sel_sine(p, t)
     return amp * sin(per * t) + mid
 end
 
-function bacphage_sine_internal_ver1!(du, u, p, t,)
-    @unpack r, b, per, amp = p
-    C , S  = u
-    du[1] = r * C * (1 - C) + ( S / ( 1 + S * C ) ) * C * ( 1 - C ) + b * ( 1 - C )
-    du[2] = amp * per * cos(per * t)
-    return
-end
-
-function bacphage_sine_internal_ver2!(du, u, p, t,)
-    @unpack r, b, per, amp = p
-    C , S  = u
-    du[1] = r * C * (1 - C) +  S * C * ( 1 - C ) + b * ( 1 - C )
-    du[2] = amp * per * cos(per * t)
-    return
-end
-
-function bacphage_sine_forced_ver1!(du, u, p, t,)
-    @unpack r, b, per, amp = p
-    s = p.selec(p,t)
-    du[1] = r * u[1] * (1 - u[1]) + ( s / ( 1 + s * u[1] ) ) * u[1] * ( 1 - u[1] ) + b * ( 1 - u[1] )
-    return
-end
-
-function bacphage_sine_forced_ver2!(du, u, p, t,)
+function bacphage_sine_forced!(du, u, p, t,)
     @unpack r, b, per, amp = p
     s = p.selec(p,t)
     du[1] = r * u[1] * (1 - u[1]) + (s * u[1] * ( 1 - u[1] )) + b * ( 1 - u[1] )

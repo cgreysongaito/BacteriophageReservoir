@@ -59,7 +59,7 @@ let
     end
 
     cb = DiscreteCallback(condition, changesel!)
-    prob = ODEProblem(bacphage_wobac!, u0, tspan, BacPhagePar(s=-0.25))
+    prob = ODEProblem(bacphage!, u0, tspan, BacPhagePar(s=-0.25, b=0.0)) ###NEED TO CHECK IF WORKS WHEN PUT b=0.0 instead of wobac function
     sol = solve(prob, Rodas5(), callback=cb)
     shortsol = sol(0.0:0.5:900.0)
     # test = figure()
@@ -140,78 +140,34 @@ dHGTdt(0.449999, dcdt(0.4499999, BacPhagePar(s = 0.01)), BacPhagePar(s = 0.01))
 #So yes 1 fixed point - dynamics move off 1 earlier when b is smaller but overall trough in dynamics I think is the smaller (but should check this with higher resolution)
 #look at the speed of down and up (with same sine wave) 
 #draw equilibria on graph
-let #Rodas5
-    par1 = BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.5, mid=0.0)
-    par2 = BacPhageSineForcedPar(b = 0.004, per=0.2, amp=0.5, mid=0.0)
-    u0 = [0.5]
-    tspan=(0.0, 500.0)
-    prob1 = ODEProblem(bacphage_sine_forced_ver1!, u0, tspan, par1)
-    sol1 = solve(prob1, Rodas5())
-    solseries1 = sol1(50.0:0.05:100.0)
-    prob2 = ODEProblem(bacphage_sine_forced_ver1!, u0, tspan, par2)
-    sol2 = solve(prob2, Rodas5())
-    solseries2 = sol2(50.0:0.05:100.0)
-    sel = [sel_sine(par1, t) for t in solseries1.t]
-    equil1 = [stableequil_ver1(s, par1) for s in sel]
-    equil2 = [stableequil_ver1(s, par2) for s in sel]
-    test = figure()
-    plot(solseries1.t, solseries1.u, color="green", label = "b=0.001")
-    plot(solseries2.t, solseries2.u, color="red", label = "b=0.004")
-    plot(solseries1.t, equil1, color="green", linestyle="dashed")
-    plot(solseries2.t, equil2, color="red", linestyle="dashed")
-    ylim(-0.1,1.1)
-    legend()
-    return test
-    # savefig(joinpath(abpath(), "figs/delay_bvalues.png"))
-end
+
+
+# let #Rodas5 - CAN LIKELY REMOVE
+#     par1 = BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.5, mid=0.0)
+#     par2 = BacPhageSineForcedPar(b = 0.004, per=0.2, amp=0.5, mid=0.0)
+#     u0 = [0.5]
+#     tspan=(0.0, 500.0)
+#     prob1 = ODEProblem(bacphage_sine_forced_ver1!, u0, tspan, par1)
+#     sol1 = solve(prob1, Rodas5())
+#     solseries1 = sol1(50.0:0.05:100.0)
+#     prob2 = ODEProblem(bacphage_sine_forced_ver1!, u0, tspan, par2)
+#     sol2 = solve(prob2, Rodas5())
+#     solseries2 = sol2(50.0:0.05:100.0)
+#     sel = [sel_sine(par1, t) for t in solseries1.t]
+#     equil1 = [stableequil_ver1(s, par1) for s in sel]
+#     equil2 = [stableequil_ver1(s, par2) for s in sel]
+#     test = figure()
+#     plot(solseries1.t, solseries1.u, color="green", label = "b=0.001")
+#     plot(solseries2.t, solseries2.u, color="red", label = "b=0.004")
+#     plot(solseries1.t, equil1, color="green", linestyle="dashed")
+#     plot(solseries2.t, equil2, color="red", linestyle="dashed")
+#     ylim(-0.1,1.1)
+#     legend()
+#     return test
+#     # savefig(joinpath(abpath(), "figs/delay_bvalues.png"))
+# end
 
 #eigenvalues
-#version 1
-
-
-let 
-    srange = -0.2:0.01:0.1
-    data_ver1a = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.0)) for s in srange]
-    data_ver1b = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.001)) for s in srange]
-    data_ver1c = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.01)) for s in srange]    
-    test = figure()
-    plot(srange, data_ver1a, color = "blue", label = "b = 0.00")
-    plot(srange, data_ver1b, color = "green", label = "b = 0.001")
-    plot(srange, data_ver1c, color = "purple", label = "b = 0.01")
-    hlines(0.0, -0.2, 0.1, linestyles = "dashed")
-    xlabel("s")
-    ylabel("λ")
-    legend()
-    title("Eigenvalue for Ĉ = 1")
-    return test
-    # savefig(joinpath(abpath(), "figs/selectionfunction_eigenvalues1b.png"))
-end
-#b just shifts where the eigenvalue line sits but does not flatten the graph
-
-
-let 
-    st = -1.0
-    en = 1.0 
-    srange = st:0.0001:en
-    data1 = [interior_equil_ver1(s, BacPhagePar(b=0.001)) for s in srange]
-    data2 = [interior_equil_ver1(s, BacPhagePar(b=0.005)) for s in srange]
-    data3 = [interior_equil_ver1(s, BacPhagePar(b=0.01)) for s in srange]
-    bifurcplot = figure(figsize=(5,4))
-    plot(srange, data1, color = "blue", label = "b = 0.001")
-    plot(srange, data2, color = "green", label = "b = 0.005")
-    plot(srange, data3, color = "red", label = "b = 0.01")
-    ylabel("Ĉ")
-    xlabel("s")
-    xlim(-1.00, 1.0)
-    ylim(0, 1)
-    hlines(0.0, st, en, linestyles="dashed", colors= "black")
-    hlines(1.0, st, en, colors= "black")
-    legend()
-    title("Non-Linear Selection Function")
-    return bifurcplot
-    # savefig(joinpath(abpath(), "figs/bifurcver1_changingb.png"))
-end
-
 let 
     st = -1.0
     en = 1.0 
@@ -247,18 +203,8 @@ end
 
 ## PROOF 3 DEPENDING ON THE PARAMETERS OF r, b, per, and amp, we get different qualitative behaviours
 ##next step figure out way to find bifurcation values of different qualitative behaviours for version 1 and version 2
-let #Rodas5
-    par1 = BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.3, mid=-0.2)
-    u0 = [0.5]
-    tspan=(0.0, 800.0)
-    prob1 = ODEProblem(bacphage_sine_forced_ver1!, u0, tspan, par1)
-    sol1 = solve(prob1, Rodas5())
-    solseries1 = sol1(0.0:0.05:800.0)
 
-    test = figure()
-    plot(solseries1.t, solseries1.u)
-    return test
-end
+
 
 #looks to be oscilattory attractor always (unless pushed to 1) but amplitude of oscilattory attractor dependent on parameters
 #so periodicity doesn't really affect qualitative pattern (except for the number of oscillations). the eventual end point is the same
@@ -266,20 +212,7 @@ end
 
 
 #Best QUESTION - what makes go to fixation versus oscilating attractor?
-let #Rodas5
-    par1 = BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.3, mid=0.1)
-    u0 = [0.5]
-    tspan=(0.0, 600.0)
-    prob1 = ODEProblem(bacphage_sine_forced_ver1!, u0, tspan, par1)
-    sol1 = solve(prob1, Rodas5())
-    solseries1 = sol1(500.0:0.05:600.0)
-    sel = [sel_sine(par1, t) for t in solseries1.t]
-    equil1 = [stableequil_ver1(s, par1) for s in sel]
-    test = figure()
-    plot(solseries1.t, solseries1.u)
-    # plot(solseries1.t, equil1, color="green", linestyle="dashed")
-    return test
-end
+
 
 let #Rodas5
     par1 = BacPhageSineForcedPar(b = 0.001, per=0.1, amp=0.3, mid=-0.09999999)
@@ -299,37 +232,12 @@ end
 #wonder whether we can get at speed travelling versus space must travel versus time available?
 
 #do the same analysis with version 2 (below) then examine geometric mean fitness
-bifurc_ver2(BacPhageSineForcedPar(b = 0.001, per=0.1, amp=0.3, mid=-0.09))
 
 
-let 
-    sel1 = [sel_sine(BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.3, mid=-0.01), t) for t in 0.0:0.1:100.0]
-    maxminsel1 = [maximum(sel1), minimum(sel1)]
-    sel2 = [sel_sine(BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.3, mid=-0.06), t) for t in 0.0:0.1:100.0]
-    maxminsel2 = [maximum(sel2), minimum(sel2)]
-    srange = -0.5:0.01:0.5
-    data_ver1a = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.001)) for s in srange]   
-    test = figure()
-    plot(srange, data_ver1a, color = "blue", label = "b = 0.001")
-    vlines(maxminsel1[1], -1, 1, color = "green", linestyles = "dashed")
-    vlines(maxminsel1[2], -1, 1, color = "green", linestyles = "dashed")
-    vlines(maxminsel2[1], -1, 1, color = "red", linestyles = "dashed")
-    vlines(maxminsel2[2], -1, 1, color = "red", linestyles = "dashed")
-    hlines(0.0, -0.5, 0.5, linestyles = "dashed")
-    xlabel("s")
-    ylabel("λ")
-    legend()
-    title("Eigenvalue for Ĉ = 1")
-    return test
-    # savefig(joinpath(abpath(), "figs/selectionfunction_eigenvalues1b.png"))
-end
 
 #maybe when integral of eigenvalues of balance we get balanced oscillation at 1. heavy on 1 side we get fixation. heavy on other side we get oscillator below 1
 #doesn't seem to be balance of integral of eigenvalues because we can fixation when negative integral
 
-calc_integral_eigen(BacPhageSineForcedPar(per = 0.2, amp=0.3, mid=-0.065))
-
-bifurc_ver1(BacPhageSineForcedPar(per = 0.2, amp=0.3, mid=-0.065))
 
 function balance_eigen_mid(midrange, par)
     parnew = par
@@ -338,7 +246,7 @@ function balance_eigen_mid(midrange, par)
         parnew.mid = midrange[i]
         sel = [sel_sine(parnew, t) for t in 0.0:0.1:100.0]
         maxminsel = [maximum(sel), minimum(sel)]
-        integral[i], err = quadgk(s -> eigen1_ver1(s, parnew), maxminsel[2], maxminsel[1]) 
+        integral[i], err = quadgk(s -> eigen1(s, parnew), maxminsel[2], maxminsel[1]) 
     end
     for j in eachindex(integral)
         if isapprox(0.0, integral[j], atol=0.0001)
@@ -347,10 +255,6 @@ function balance_eigen_mid(midrange, par)
     end
 end
 
-balance_eigen_mid(-0.2:0.00001:0.2, BacPhageSineForcedPar(per = 0.2, amp=0.3))
-
-
-quadgk(s -> eigen1_ver1(s, BacPhageSineForcedPar()), -0.3, 0.2)
 
 
 #i wonder if I could calculate the potential function for this model and see how s changes this potential function
@@ -366,7 +270,7 @@ function integral_calc_bifurc(data, bifurcvalue)
 end
 #graph of integral above bifurc value for per and amp
 function integral_surface_per(perrange, amprange, pardefault)
-    bifurcvalue = bifurc_ver1(pardefault)
+    bifurcvalue = bifurc(pardefault)
     trange = 0.0:0.1:100.0
     surface = zeros(length(perrange),length(amprange))
     for i in eachindex(perrange)
@@ -382,7 +286,7 @@ function integral_surface_per(perrange, amprange, pardefault)
 end
 
 function integral_line_amp(amprange, pardefault)
-    bifurcvalue = bifurc_ver1(pardefault)
+    bifurcvalue = bifurc(pardefault)
     trange = 0.0:0.1:100.0
     intdata = zeros(length(amprange))
     for i in eachindex(amprange)
@@ -423,7 +327,7 @@ end
 
 
 function integral_surface_mid(midrange, amprange, par)
-    bifurcvalue = bifurc_ver1(par)
+    bifurcvalue = bifurc(par)
     trange = 0.0:0.1:100.0
     surface = zeros(length(midrange),length(amprange))
     for i in 1:length(midrange)
@@ -439,7 +343,7 @@ end
 
 
 function integral_line_mid(midrange, pardefault)
-    bifurcvalue = bifurc_ver1(pardefault)
+    bifurcvalue = bifurc(pardefault)
     trange = 0.0:0.1:100.0
     intdata = zeros(length(midrange))
     for i in eachindex(midrange)
@@ -480,54 +384,18 @@ end
 
 #graph of integral above bifurc value for per and amp
 
-#trying geometric mean of selection (for bifurcation)
-#fixation pattern
-let #Rodas5
-    par1 = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.3, mid=-0.000000001)
-    u0 = [0.5]
-    tspan=(0.0, 800.0)
-    prob1 = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par1)
-    sol1 = solve(prob1, Rodas5())
-    solseries1 = sol1(0.0:0.05:800.0)
+#trying geometric mean of selection (for bifurcation)  - "bifurcation" diagram better version of this
 
-    test = figure()
-    plot(solseries1.t, solseries1.u)
-    return test
-end
 
-function sine_return(per)
-    return 2 * pi / per
-end
-
-geomean(BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.3, mid=-0.000000001), 0.0, 2*sine_return(0.2))
-geomean(BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.3, mid=0.0), 0.0, sine_return(0.2))
-geomean(BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.3, mid=0.000000001), 0.0, 2*sine_return(0.2))
-#oscillation pattern
-let #Rodas5
-    par1 = BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.3, mid=-0.102)
-    u0 = [0.5]
-    tspan=(0.0, 800.0)
-    prob1 = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par1)
-    sol1 = solve(prob1, Rodas5())
-    solseries1 = sol1(0.0:0.05:800.0)
-
-    test = figure()
-    plot(solseries1.t, solseries1.u)
-    return test
-end
-
-geomean(BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.3, mid=-0.102), 0.0, sine_return(0.2))
-geomean(BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.3, mid=0.0), 0.0, sine_return(0.2))
-geomean(BacPhageSineForcedPar(b = 0.001, per=0.2, amp=0.3, mid=0.102), 0.0, sine_return(0.2))
 
 
 #eigenvalue changes for b and r
 #C = 1
 let 
     srange = -0.2:0.01:0.2
-    data1 = [eigen1_ver2(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
-    data2 = [eigen1_ver2(s, BacPhageSineForcedPar(b = 0.01)) for s in srange]
-    data3 = [eigen1_ver2(s, BacPhageSineForcedPar(b = 0.1)) for s in srange]
+    data1 = [eigen1(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
+    data2 = [eigen1(s, BacPhageSineForcedPar(b = 0.01)) for s in srange]
+    data3 = [eigen1(s, BacPhageSineForcedPar(b = 0.1)) for s in srange]
     eigenb = figure()
     plot(srange, data1, color="blue", label = "b=0.001")
     plot(srange, data2, color="green", label = "b=0.01")
@@ -540,9 +408,9 @@ end
 
 let 
     srange = -0.2:0.01:0.2
-    data1 = [eigen1_ver2(s, BacPhageSineForcedPar(r = 0.001)) for s in srange]
-    data2 = [eigen1_ver2(s, BacPhageSineForcedPar(r = 0.01)) for s in srange]
-    data3 = [eigen1_ver2(s, BacPhageSineForcedPar(r = 0.1)) for s in srange]
+    data1 = [eigen1(s, BacPhageSineForcedPar(r = 0.001)) for s in srange]
+    data2 = [eigen1(s, BacPhageSineForcedPar(r = 0.01)) for s in srange]
+    data3 = [eigen1(s, BacPhageSineForcedPar(r = 0.1)) for s in srange]
     eigenr = figure()
     plot(srange, data1, color="blue", label = "r=0.001")
     plot(srange, data2, color="green", label = "r=0.01")
@@ -556,9 +424,9 @@ end
 #Interior equilibrium
 let 
     srange = -0.2:0.01:0.2
-    data1 = [eigenint_ver2(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
-    data2 = [eigenint_ver2(s, BacPhageSineForcedPar(b = 0.01)) for s in srange]
-    data3 = [eigenint_ver2(s, BacPhageSineForcedPar(b = 0.1)) for s in srange]
+    data1 = [eigenint(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
+    data2 = [eigenint(s, BacPhageSineForcedPar(b = 0.01)) for s in srange]
+    data3 = [eigenint(s, BacPhageSineForcedPar(b = 0.1)) for s in srange]
     eigenintb = figure()
     plot(srange, data1, color="blue", label = "b=0.001")
     plot(srange, data2, color="green", label = "b=0.01")
@@ -571,9 +439,9 @@ end
 
 let 
     srange = -0.2:0.001:0.2
-    data1 = [eigenint_ver2(s, BacPhageSineForcedPar(r = 0.001)) for s in srange]
-    data2 = [eigenint_ver2(s, BacPhageSineForcedPar(r = 0.01)) for s in srange]
-    data3 = [eigenint_ver2(s, BacPhageSineForcedPar(r = 0.1)) for s in srange]
+    data1 = [eigenint(s, BacPhageSineForcedPar(r = 0.001)) for s in srange]
+    data2 = [eigenint(s, BacPhageSineForcedPar(r = 0.01)) for s in srange]
+    data3 = [eigenint(s, BacPhageSineForcedPar(r = 0.1)) for s in srange]
     eigenintr = figure()
     plot(srange, data1, color="blue", label = "r=0.001")
     plot(srange, data2, color="green", label = "r=0.01")
@@ -593,7 +461,7 @@ function bifurcb(brange)
     tspan=(0.0, 10000.0)
     for bi in eachindex(brange)
         par.b = brange[bi]
-        prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
         sol = solve(prob, Rodas5())
         solseries = sol(9000.0:1.0:10000.0)
         maxC[bi] = maximum(solseries)
@@ -620,7 +488,7 @@ function bifurcr(rrange)
     tspan=(0.0, 10000.0)
     for ri in eachindex(rrange)
         par.r = rrange[ri]
-        prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
         sol = solve(prob, Rodas5())
         solseries = sol(9000.0:1.0:10000.0)
         maxC[ri] = maximum(solseries)
@@ -639,28 +507,37 @@ let
 end
 #"bifurcations" changing mid
 function bifurcmid(midrange)
-    par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=-0.01)
-    maxC = zeros(length(midrange))
-    minC = zeros(length(midrange))
+    data = zeros(length(midrange), 3)
     u0=[0.5]
-    tspan=(0.0, 10000.0)
-    for midi in eachindex(midrange)
+    tspan=(0.0, 15000.0)
+    @threads for midi in eachindex(midrange)
+        par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
         par.mid = midrange[midi]
-        prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
         sol = solve(prob, Rodas5())
-        solseries = sol(9000.0:1.0:10000.0)
-        maxC[midi] = maximum(solseries)
-        minC[midi] = minimum(solseries)
+        solseries = sol(14000.0:1.0:15000.0)
+        data[midi, 1] = midrange[midi]
+        data[midi, 2] = maximum(solseries)
+        data[midi, 3] = minimum(solseries)
     end
-    return [maxC, minC]
+    return data
 end
 
+###**** COULD BE THAT NEED MUCH LONGER TIME SCALE TO SEE WHERE BIFURCATION HAPPENS - ie 10000 too short to see asymptotic behaviour of landing on 1
+#NEED TO FIGURE OUT HOW TO DEAL WITH INSTABILITY DETECTED - https://docs.sciml.ai/DiffEqDocs/stable/basics/faq/
+#ANOTHER WAY TO TEST IF INSTABILITY STILL A PROBLEM - WHERE DOES maximum of dynamics stop increasing?
+
+
 let 
+    par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=0.0)
     midrange = -0.01:0.0001:0.001
     data = bifurcmid(midrange)
     test = figure()
-    plot(midrange, data[1])
-    plot(midrange, data[2])
+    plot(data[:, 1], data[:, 2])
+    plot(data[:, 1], data[:, 3])
+    vlines(bifurc(par), 0.0, 1.0) #bifurc value or r+b=-mid
+    vlines(par.r+par.b, 0.0, 1.0)
+    vlines(par.b-par.r, 0.0, 1.0)
     return test
 end
 
@@ -673,8 +550,8 @@ function bifurcintegral_eigen1_mid(midrange)
     tspan=(0.0, 10000.0)
     @threads for midi in eachindex(midrange)
         par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
-        data[midi, 1] = calc_integral_eigen1_ver2(par)
-        prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+        data[midi, 1] = calc_integral_eigen1(par)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
         sol = solve(prob, Rodas5())
         solseries = sol(9000.0:1.0:10000.0)
         data[midi, 2] = maximum(solseries)
@@ -702,8 +579,8 @@ function bifurcintegral_eigenint_mid(midrange)
     tspan=(0.0, 10000.0)
     @threads for midi in eachindex(midrange)
         par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
-        data[midi, 1] = calc_integral_eigenint_ver2(par)
-        prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+        data[midi, 1] = calc_integral_eigenint(par)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
         sol = solve(prob, Rodas5())
         solseries = sol(9000.0:1.0:10000.0)
         data[midi, 2] = maximum(solseries)
@@ -723,8 +600,8 @@ end
 
 let #eigenvalues are just "conjugates" of each other so adding or subtracting eigenvalue integrals does nothing
     srange = -0.2:0.01:0.2
-    data1 = [eigen1_ver2(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
-    dataint = [eigenint_ver2(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
+    data1 = [eigen1(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
+    dataint = [eigenint(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
     eigenb = figure()
     plot(srange, data1, color="blue")
     plot(srange, dataint, color="green")
@@ -737,7 +614,7 @@ end
 
 #relative time spent on 1 versus interior in a cycle - "bifurcation"
 function time_equil1(par)
-    bifurcval=bifurc_ver2(par)
+    bifurcval=bifurc(par)
     if (bifurcval-par.mid)/par.amp > 1.0 || (bifurcval-par.mid)/par.amp < -1
         return 0.0
     end
@@ -758,7 +635,7 @@ function bifurctimeequil1_mid(midrange)
     @threads for midi in eachindex(midrange)
         par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
         data[midi, 1] = time_equil1(par)
-        prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
         sol = solve(prob, Rodas5())
         solseries = sol(9000.0:1.0:10000.0)
         data[midi, 2] = maximum(solseries)
@@ -778,7 +655,7 @@ end
 
 #"bifurcation" integral of sine wave above 0 and above bifurcation (shift sine wave by bifurcation value)
 function calc_int_sineshifted(par)
-    bifurcval=bifurc_ver2(par)
+    bifurcval=bifurc(par)
     integral, err = quadgk(x -> sel_sine(par, x)+abs(bifurcval),0.0, 2*pi/par.per)
     return integral
 end
@@ -825,7 +702,7 @@ function bifurc_geom_mid(midrange)
     @threads for midi in eachindex(midrange)
         par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
         data[midi, 1] = real(geomean_sine(par, 0.0, 2*pi/par.per))
-        prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
         sol = solve(prob, Rodas5())
         solseries = sol(9000.0:1.0:10000.0)
         data[midi, 2] = maximum(solseries)
@@ -841,7 +718,7 @@ function bifurc_geomshift_mid(midrange)
     @threads for midi in eachindex(midrange)
         par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
         data[midi, 1] = real(geomean_sineshift(par, 0.0, 2*pi/par.per))
-        prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
         sol = solve(prob, Rodas5())
         solseries = sol(9000.0:1.0:10000.0)
         data[midi, 2] = maximum(solseries)
@@ -849,9 +726,6 @@ function bifurc_geomshift_mid(midrange)
     end
     return data
 end
-
-testpar = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=0.001)
-real(geomean_sine(testpar, 0.0, 2*pi/testpar.per))
 
 let 
     midrange = -0.01:0.001:0.001
@@ -876,184 +750,7 @@ end
 #PROOF 4 GENERALIZE FOR white and red noise
 
 
-### Numerical Proof
-#Trying to assess buffering capacity with and without lysogeny.
-#CV
-#changing with colour of noise
-function CV_calc_colour(rrange)
-    mnvals = zeros(length(rrange))
-    stdevvals = zeros(length(rrange))
-    CVvals = zeros(length(rrange))
-    for (ri, rval) in enumerate(rrange)
-        sol = bacphage_pert_sol(0.01, [0.5], 1.0, rval, 125, 500.0, 100.0:1.0:500.0)
-        mnvals[ri] = mean(sol)
-        stdevvals[ri] = std(sol)
-        CVvals[ri] = stdevvals[ri]/mnvals[ri]
-    end
-    return [mnvals, stdevvals, abs.(CVvals)]
-end
 
-let
-    rrange = 0.0:0.01:0.9
-    data = CV_calc_colour(rrange)
-    test = figure()
-    plot(rrange, data[3])
-    xlabel()
-    return test
-end
-
-
-#changing with periodicity of sine
-function CV_calc_per(perrange)
-    mnvals = zeros(length(perrange))
-    stdevvals = zeros(length(perrange))
-    CVvals = zeros(length(perrange))
-    for (peri, perval) in enumerate(perrange)
-        sol = bacphage_sine_sol(0.01, perval, 0.5, 500.0, 100.0:1.0:500.0)
-        mnvals[peri] = mean(sol[1,:])
-        stdevvals[peri] = std(sol[1,:])
-        CVvals[peri] = stdevvals[peri]/mnvals[peri]
-    end
-    return [mnvals, stdevvals, abs.(CVvals)]
-end
-
-let
-    perrange = 0.1:0.1:1.0
-    data = CV_calc_per(perrange)
-    test = figure()
-    plot(perrange, data[3])
-    xlabel("Periodicity")
-    ylabel("CV")
-    return test
-end
-
-#changing with amplitude of sine
-function CV_calc_amp(amprange)
-    mnvals = zeros(length(amprange))
-    stdevvals = zeros(length(amprange))
-    CVvals = zeros(length(amprange))
-    for (ampi, ampval) in enumerate(amprange)
-        sol = bacphage_sine_sol(0.01, 0.2, ampval, 500.0, 100.0:1.0:500.0)
-        mnvals[ampi] = mean(sol)
-        stdevvals[ampi] = std(sol)
-        CVvals[ampi] = stdevvals[ampi]/mnvals[ampi]
-    end
-    return [mnvals, stdevvals, abs.(CVvals)]
-end
-
-let
-    amprange = 0.1:0.1:1.0
-    data = CV_calc_amp(amprange)
-    test = figure()
-    plot(amprange, data[3])
-    return test
-end
-
-
-#Changing with b
-
-function CV_calc(sol)
-    mn = mean(sol)
-    stdev = std(sol)
-    return [mn, stdev, stdev/mn]
-end
-
-let 
-    sol = bacphage_sine_sol(0.01,0.2, 0.5, 500.0, 100.0:1.0:500.0)
-    return std(sol[2,:])
-end
-
-let 
-    sol = bacphage_sine_sol(0.01,1.0, 0.5, 500.0, 100.0:1.0:500.0)
-    test=figure()
-    plot(sol.t, sol.u)
-    return test
-end
-
-
-
-
-#CV of C minus CV of environment  ####***** SOMETHING FEELS WRONG WHEN CALCULATING THE CV OF ENVIRONMENT
-function StandCV_calc_per(perrange)
-    solCVvals = zeros(length(perrange))
-    envirCVvals = zeros(length(perrange))
-    StandCVvals = zeros(length(perrange))
-    for (peri, perval) in enumerate(perrange)
-        sol = bacphage_sine_sol(0.01, perval, 0.5, 500.0, 100.0:1.0:500.0)
-        solCVvals[peri] = abs(std(sol[1,:])/mean(sol[1,:]))
-        envirCVvals[peri] = abs(std(sol[2,:])/mean(sol[2,:]))
-        StandCVvals[peri] = solCVvals[peri]-envirCVvals[peri]
-    end
-    return [solCVvals,envirCVvals,StandCVvals]
-end
-
-let
-    perrange = 0.1:0.1:1.0
-    data = StandCV_calc_per(perrange)
-    test = figure()
-    plot(perrange, data[3], color = "blue")
-    plot(perrange, data[1], color = "green")
-    plot(perrange, data[2], color = "red")
-    xlabel("Periodicity")
-    ylabel("CV")
-    return test
-end
-
-#changing with amplitude of sine
-function StandCV_calc_amp(amprange)
-    solCVvals = zeros(length(amprange))
-    envirCVvals = zeros(length(amprange))
-    StandCVvals = zeros(length(amprange))
-    for (ampi, ampval) in enumerate(amprange)
-        sol = bacphage_sine_sol(0.01, 0.2, ampval, 500.0, 100.0:1.0:500.0)
-        solCVvals[ampi] = abs(std(sol[1,:])/mean(sol[1,:]))
-        envirCVvals[ampi] = abs(std(sol[2,:])/mean(sol[2,:]))
-        StandCVvals[ampi] = solCVvals[ampi]-envirCVvals[ampi]
-    end
-    return [solCVvals,envirCVvals,StandCVvals]
-end
-
-StandCV_calc_amp(0.1:0.1:1.0)
-
-let
-    perrange = 0.1:0.1:1.0
-    data = StandCV_calc_amp(perrange)
-    test = figure()
-    plot(perrange, data[3], color = "blue")
-    plot(perrange, data[1], color = "green")
-    plot(perrange, data[2], color = "red")
-    return test
-end
-
-#Speed of response after perturbation
-
-# Tracking of equilibrium (integral area calculation)
-#split if function - if below bifurc value return interior if above return 1
-
-
-#sine
-function tracking_sine_per(perrange)
-    track = zeros(length(perrange))
-    for (peri, perval) in enumerate(perrange)
-        sol = bacphage_sine_sol(0.01, perval, 0.5, 500.0, 100.0:1.0:500.0)
-        trackpoint = zeros(length(sol))
-        for i in 1:length(sol)
-            equilval = equil(sol[2,i])
-            trackpoint[i] = abs(sol[1,i] - equilval)
-        end
-        track[peri] = mean(trackpoint)
-    end
-    return track
-end
-
-let
-    data = tracking_sine_per(0.1:0.1:0.9) #longer periods obviously mean better ability of the system to track the equilibrium
-    test = figure()
-    plot(0.1:0.1:0.9, data)
-    xlabel("Periodicity")
-    ylabel("Mean difference between solution and equilibrium")
-    return test
-end
 
 #temporal cross-correlation of equilibrium state with actual dynamics
 #testing of crosscor
@@ -1159,68 +856,7 @@ trackingcor_noise_r(0.1:0.1:0.9, 1:1:100)
 
 
 
-#check eigenvalues of 1 fixed point as change selection for version 1 and version 2
-#version 1
-function eigen1_ver1(s, par)
-    @unpack b, r = par
-    return (-b*s - b - r*s - r - s)/(s+1)
-end
 
-function eigen1_ver2(s, par)
-    @unpack b, r = par
-    return - b - r - s
-end
-
-let 
-    srange = -0.5:0.01:1.00
-    data_ver1a = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.0)) for s in srange]
-    data_ver2 = [eigen1_ver2(s, BacPhageSineForcedPar()) for s in srange]
-    test = figure()
-    plot(srange, data_ver1a, color = "blue")
-
-    plot(srange, data_ver2, color = "red")
-    hlines(0.0, -0.5, 1.00)
-    xlabel("s")
-    ylabel("λ")
-    return test
-end
-#b just shifts where the eigenvalue line sits but does not flatten the graph
-
-
-let 
-    srange = -0.5:0.01:1.00
-    data_ver1a = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.01)) for s in srange]
-    data_ver2 = [eigen1_ver2(s, BacPhageSineForcedPar()) for s in srange]
-    test = figure()
-    plot(srange, data_ver1a, color = "blue", label="Nonlinear")
-    plot(srange, data_ver2, color = "red", label="Linear")
-    hlines(0.0, -0.5, 1.00, linestyles = "dashed")
-    xlabel("s")
-    ylabel("λ")
-    legend()
-    title("Eigenvalue for Ĉ = 1")
-    # return test
-    savefig(joinpath(abpath(), "figs/selectionfunction_eigenvalues1.png"))
-end
-
-let 
-    srange = -0.5:0.01:1.00
-    data_ver1a = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.0)) for s in srange]
-    data_ver1b = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.04)) for s in srange]
-    data_ver1c = [eigen1_ver1(s, BacPhageSineForcedPar(b=0.08)) for s in srange]    
-    test = figure()
-    plot(srange, data_ver1a, color = "blue", label = "b = 0.00")
-    plot(srange, data_ver1b, color = "green", label = "b = 0.04")
-    plot(srange, data_ver1c, color = "purple", label = "b = 0.08")
-    hlines(0.0, -0.5, 1.00, linestyles = "dashed")
-    xlabel("s")
-    ylabel("λ")
-    legend()
-    title("Eigenvalue for Ĉ = 1")
-    # return test
-    savefig(joinpath(abpath(), "figs/selectionfunction_eigenvalues1b.png"))
-end
-#r also doesn't flatten the eigenvalue line, just shifts the line
 
 
 #why does version 2 go to fixation or 0 (can it ever find oscilating "attractor")?
