@@ -113,6 +113,12 @@ function calc_integral_eigenint_ver2(par)
 end
 
 
+function geomean_sine(par, a, b)
+    @unpack per, amp, mid = par
+    integral, err = quadgk(t -> log(Complex(sel_sine(par, t))), a, b)
+    return exp((1 / (b-a)) * integral )
+end
+
 #With sine environmental selection
 @with_kw mutable struct BacPhageSineInternalPar
     r = 0.001 #changed to neihus parameter

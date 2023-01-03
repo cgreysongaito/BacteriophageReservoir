@@ -495,12 +495,6 @@ let #Rodas5
     return test
 end
 
-function geomean(par, a, b)
-    @unpack per, amp, mid = par
-    integral, err = quadgk(t -> log(Complex(sel_sine(par, t))), a, b)
-    return exp((1 / (b-a)) * integral )
-end
-
 function sine_return(per)
     return 2 * pi / per
 end
@@ -757,47 +751,126 @@ function time_equil1(par)
     end
 end
 
-let 
-    bifurc = -0.2
-    xrange = 0.0:0.01:2*pi
-    sinedata1 = [sin(x)+0.0 for x in xrange]
-    sinedata2 = [sin(x)-0.1 for x in xrange]
-    sinedata3 = [sin(x)-0.3 for x in xrange]
-    test = figure()
-    subplot(3,1,1)
-    plot(xrange, sinedata1)
-    hlines(bifurc, 0.0, 2*pi, linestyles = "dashed")
-    hlines(0.0, 0.0, 2*pi)
-    println(bifurc-0.0)
-    subplot(3,1,2)
-    plot(xrange, sinedata2)
-    hlines(bifurc, 0.0, 2*pi, linestyles = "dashed")
-    hlines(-0.1, 0.0, 2*pi)
-    println(bifurc-(-0.1))
-    subplot(3,1,3)
-    plot(xrange, sinedata3)
-    hlines(bifurc, 0.0, 2*pi, linestyles = "dashed")
-    hlines(-0.3, 0.0, 2*pi)
-    println(bifurc-(-0.3))
-    return test
+function bifurctimeequil1_mid(midrange)
+    data = zeros(length(midrange), 3)
+    u0=[0.5]
+    tspan=(0.0, 10000.0)
+    @threads for midi in eachindex(midrange)
+        par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
+        data[midi, 1] = time_equil1(par)
+        prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+        sol = solve(prob, Rodas5())
+        solseries = sol(9000.0:1.0:10000.0)
+        data[midi, 2] = maximum(solseries)
+        data[midi, 3] = minimum(solseries)
+    end
+    return data
 end
 
-
-###NOT SURE IF THIS IS WORKING
 let 
-    par = BacPhageSineForcedPar(b = 0.001)
-    trange = 0.0:0.01:2*pi/par.per
-    data = [sel_sine(par, t) for t in trange]
+    midrange = -0.01:0.001:0.001
+    data = bifurctimeequil1_mid(midrange)
     test = figure()
-    plot(trange, data)
-    hlines(bifurc_ver2(par), 0.0, 2*pi/par.per)
+    plot(data[:, 1], data[:, 2])
+    plot(data[:, 1], data[:, 3])
     return test
 end
-
 
 #"bifurcation" integral of sine wave above 0 and above bifurcation (shift sine wave by bifurcation value)
+function calc_int_sineshifted(par)
+    bifurcval=bifurc_ver2(par)
+    integral, err = quadgk(x -> sel_sine(par, x)+abs(bifurcval),0.0, 2*pi/par.per)
+    return integral
+end
 
-#gemometric mean - "bifucation"
+calc_int_sineshifted(BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=-0.003))
+
+function bifurc_intsineshifted_mid(midrange)
+    data = zeros(length(midrange), 3)
+    u0=[0.5]
+    tspan=(0.0, 10000.0)
+    @threads for midi in eachindex(midrange)
+        par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
+        data[midi, 1] = calc_int_sineshifted(par)
+        prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+        sol = solve(prob, Rodas5())
+        solseries = sol(9000.0:1.0:10000.0)
+        data[midi, 2] = maximum(solseries)
+        data[midi, 3] = minimum(solseries)
+    end
+    return data
+end
+
+let 
+    midrange = -0.01:0.001:0.001
+    data = bifurc_intsineshifted_mid(midrange)
+    test = figure()
+    plot(data[:, 1], data[:, 2])
+    plot(data[:, 1], data[:, 3])
+    return test
+end
+
+#geometric mean - "bifucation"
+function geomean_sineshift(par, a, b)
+    @unpack per, amp, mid = par
+    bifurcval=bifurc_ver2(par)
+    integral, err = quadgk(t -> log(Complex(sel_sine(par, t)+abs(bifurcval))), a, b)
+    return exp((1 / (b-a)) * integral )
+end
+
+function bifurc_geom_mid(midrange)
+    data = zeros(length(midrange), 3)
+    u0=[0.5]
+    tspan=(0.0, 10000.0)
+    @threads for midi in eachindex(midrange)
+        par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
+        data[midi, 1] = real(geomean_sine(par, 0.0, 2*pi/par.per))
+        prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+        sol = solve(prob, Rodas5())
+        solseries = sol(9000.0:1.0:10000.0)
+        data[midi, 2] = maximum(solseries)
+        data[midi, 3] = minimum(solseries)
+    end
+    return data
+end
+
+function bifurc_geomshift_mid(midrange)
+    data = zeros(length(midrange), 3)
+    u0=[0.5]
+    tspan=(0.0, 10000.0)
+    @threads for midi in eachindex(midrange)
+        par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
+        data[midi, 1] = real(geomean_sineshift(par, 0.0, 2*pi/par.per))
+        prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+        sol = solve(prob, Rodas5())
+        solseries = sol(9000.0:1.0:10000.0)
+        data[midi, 2] = maximum(solseries)
+        data[midi, 3] = minimum(solseries)
+    end
+    return data
+end
+
+testpar = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=0.001)
+real(geomean_sine(testpar, 0.0, 2*pi/testpar.per))
+
+let 
+    midrange = -0.01:0.001:0.001
+    data = bifurc_geom_mid(midrange)
+    test = figure()
+    plot(data[:, 1], data[:, 2])
+    plot(data[:, 1], data[:, 3])
+    return test
+end
+
+let 
+    midrange = -0.01:0.001:0.001
+    data = bifurc_geomshift_mid(midrange)
+    test = figure()
+    plot(data[:, 1], data[:, 2])
+    plot(data[:, 1], data[:, 3])
+    return test
+end
+
 
 #CHECK IF INITIAL VALUE PROBLEM
 #PROOF 4 GENERALIZE FOR white and red noise
