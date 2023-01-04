@@ -112,11 +112,12 @@ end
 
 #Noise environmental selection
 
-function noise_creation(r, len)
-    white = rand(Normal(0.0, 0.5), Int64(len))
+function noise_creation(μ, σ, corr, len, seed)
+    Random.seed!(seed)
+    white = rand(Normal(0.0, σ), Int64(len))
     intnoise = [white[1]]
     for i in 2:Int64(len)
-        intnoise = append!(intnoise, r * intnoise[i-1] + white[i] )
+        intnoise = append!(intnoise, corr * intnoise[i-1] + white[i] )
     end
     c = std(white)/std(intnoise)
     meanintnoise = mean(intnoise)
@@ -124,14 +125,18 @@ function noise_creation(r, len)
     for i in 1:Int64(len)
         scalednoise[i] = c * (intnoise[i] - meanintnoise)
     end
-    return scalednoise
+    recentrednoise = zeros(Int64(len))
+    for i in 1:Int64(len)
+        recentrednoise[i] = scalednoise[i]+μ
+    end
+    return recentrednoise
 end #produces noise with a certain autocorrelation. variance of the noise is scaled using method in Wichmann et al. 2005
 
-function bacphage_pert_sol(b, u0, freq, r, seed, tsend, tvals)
-    Random.seed!(seed)
+function bacphage_pert_sol(b, u0, freq, μ, σ, corr, seed, tsend, tvals)
     par = BacPhagePar()
     par.b = b
-    noise = noise_creation(r, tsend / freq)
+    par.s = μ
+    noise = noise_creation(μ, σ, corr, tsend / freq, seed)
     count = 1
     tspan = (0.0, tsend)
 
@@ -141,9 +146,10 @@ function bacphage_pert_sol(b, u0, freq, r, seed, tsend, tvals)
     end
 
     cb = PeriodicCallback(pert_cb2, freq, initial_affect = false)
-    prob = ODEProblem(bacphage!, u0, tspan, par)
-    sol = DifferentialEquations.solve(prob, callback = cb, reltol = 1e-8)
+    prob = ODEProblem(bacphage!, [u0], tspan, par)
+    sol = DifferentialEquations.solve(prob, callback = cb, alg=RadauIIA5()) #reltol = 1e-8
     solend = sol(tvals)
-    return [[i,j] for (i,j) in zip(solend[1,:], noise[100:500])]
+    return solend
+    # return [solend[1,:], append!([μ], noise[Int64((minimum(tvals) / freq) + 1.0):Int64(tsend / freq)])]
 end
 

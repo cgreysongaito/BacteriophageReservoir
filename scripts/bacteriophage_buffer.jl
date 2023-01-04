@@ -506,16 +506,16 @@ let
     return test
 end
 #"bifurcations" changing mid
-function bifurcmid(midrange)
+function bifurcmid(midrange, tend)
     data = zeros(length(midrange), 3)
     u0=[0.5]
-    tspan=(0.0, 15000.0)
+    tspan=(0.0, tend)
     @threads for midi in eachindex(midrange)
         par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
         par.mid = midrange[midi]
         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, Rodas5())
-        solseries = sol(14000.0:1.0:15000.0)
+        sol = solve(prob, RadauIIA5())
+        solseries = sol(tend-1000:1.0:tend)
         data[midi, 1] = midrange[midi]
         data[midi, 2] = maximum(solseries)
         data[midi, 3] = minimum(solseries)
@@ -531,13 +531,11 @@ end
 let 
     par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=0.0)
     midrange = -0.01:0.0001:0.001
-    data = bifurcmid(midrange)
+    data = bifurcmid(midrange, 100000.0)
     test = figure()
     plot(data[:, 1], data[:, 2])
     plot(data[:, 1], data[:, 3])
     vlines(bifurc(par), 0.0, 1.0) #bifurc value or r+b=-mid
-    vlines(par.r+par.b, 0.0, 1.0)
-    vlines(par.b-par.r, 0.0, 1.0)
     return test
 end
 
