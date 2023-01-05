@@ -4,17 +4,17 @@ include("bacteriophage_commoncode.jl")
 #Proof 1 YES CONJUGATION DOES MOST OF THE WORK
 ##exploring contributions of conjugation versus selection versus lysogeny after a change to positive selection
 #May be able to get same intuition from the equations - but time series still useful
-function conjugation(C, r)
-    return r * C * (1 - C)
-end
+# function conjugation(C, r)
+#     return r * C * (1 - C)
+# end
 
-function selection(C, s)
-    return ( s / ( 1 + s * C ) ) * C * ( 1 - C )
-end
+# function selection(C, s)
+#     return ( s / ( 1 + s * C ) ) * C * ( 1 - C )
+# end
 
-function lysogeny(C, b)
-    return  b * ( 1 - C )
-end
+# function lysogeny(C, b)
+#     return  b * ( 1 - C )
+# end
 
 let 
     u0 = [0.5]
@@ -133,6 +133,28 @@ function dHGTdt(C,dcdtval, par)
 end
 
 dHGTdt(0.449999, dcdt(0.4499999, BacPhagePar(s = 0.01)), BacPhagePar(s = 0.01))
+
+#time taken to reach gene fixation after switch in selection for different values of b
+
+test = selection_switch_bacphage(0.001, -0.05, 0.01, 0.0:1.0:1000.0)
+test.u[1]
+function calc_time_fixation(b, oldsel, newsel, tvals)
+    solseries = selection_switch_bacphage(b, oldsel, newsel, tvals)
+    for ti in eachindex(solseries.t)
+        if isapprox(solseries.u[ti], 1.0, reltol)
+            return solseries.t[ti]-50.0
+        end
+    end
+end
+
+function time_fixation_b(brange, oldsel, newsel, tvals)
+    timedate=zeros(length(brange))
+    @threads for bi in eachindex(brange)
+        timedate[bi] = calc_time_fixation(brange[bi], oldsel, newsel, tvals)
+    end
+    return [brange, timedate]
+end
+
 
 
 ## PROOF 2 BUT INCREASING BACTERIOPHAGE REDUCES THE DELAY BETWEEN EQUILIBRIUM AND SYSTEM STATE. ALSO REDUCED CV

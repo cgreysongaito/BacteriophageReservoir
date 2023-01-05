@@ -26,6 +26,45 @@ function bacphage!(du, u, p, t,)
     return
 end
 
+
+
+function selection_switch_bacphage(b, oldsel, newsel, tvals)
+    par = BacPhagePar(b = b, s = oldsel)
+    u0 = [stableequil(oldsel, par)]
+    tspan=(0.0, 900.0)
+
+    condition(u,t,integrator) = t > 50.0 
+    function changesel!(integrator)
+        integrator.p.s=newsel
+    end
+
+    cb = DiscreteCallback(condition, changesel!)
+    prob = ODEProblem(bacphage!, u0, tspan, par)
+    sol = solve(prob,Rodas5(), callback=cb)
+    solseries = sol(tvals)
+    return solseries
+end
+
+function conjugation(C, r)
+    return r * C * (1 - C)
+end
+
+function selection(C, s)
+    return s * C * ( 1 - C )
+end
+
+function lysogeny(C, b)
+    return  b * ( 1 - C )
+end
+
+function parse_r_b_s(solseries, par)
+    @unpack r, s, b = par
+    conjdata = [conjugation(C, r) for C in solseries[1, :]]
+    selecdata = [selection(C, s) for C in solseries[1,:]]
+    lysodata = [lysogeny(C, b) for C in solseries[1,:]]
+    return [conjdata, selecdata, lysodata]
+end
+
 # function bacphage_wobac!(du, u, p, t,)
 #     @unpack r, b, s = p
 #     du[1] = r * u[1] * (1 - u[1]) + ( s / ( 1 + s * u[1] ) ) * u[1] * ( 1 - u[1] )
@@ -149,7 +188,6 @@ function bacphage_pert_sol(b, u0, freq, μ, σ, corr, seed, tsend, tvals)
     prob = ODEProblem(bacphage!, [u0], tspan, par)
     sol = DifferentialEquations.solve(prob, callback = cb, alg=RadauIIA5()) #reltol = 1e-8
     solend = sol(tvals)
-    return solend
-    # return [solend[1,:], append!([μ], noise[Int64((minimum(tvals) / freq) + 1.0):Int64(tsend / freq)])]
+    return [solend[1,:], append!([μ], noise[Int64((minimum(tvals) / freq) + 1.0):Int64(tsend / freq)])]
 end
 
