@@ -40,7 +40,7 @@ function selection_switch_bacphage(b, oldsel, newsel, tvals)
 
     cb = DiscreteCallback(condition, changesel!)
     prob = ODEProblem(bacphage!, u0, tspan, par)
-    sol = solve(prob,Rodas5(), callback=cb)
+    sol = solve(prob,RadauIIA5(), callback=cb)
     solseries = sol(tvals)
     return solseries
 end
@@ -108,14 +108,14 @@ end
 function calc_integral_eigen1(par)
     sel = [sel_sine(par, t) for t in 0.0:0.0001:1000.0]
     maxminsel = [maximum(sel), minimum(sel)]
-    integral, err = quadgk(s -> eigen1_ver2(s, par), maxminsel[2], maxminsel[1])
+    integral, err = quadgk(s -> eigen1(s, par), maxminsel[2], maxminsel[1])
     return integral
 end
 
 function calc_integral_eigenint(par)
     sel = [sel_sine(par, t) for t in 0.0:0.0001:1000.0]
     maxminsel = [maximum(sel), minimum(sel)]
-    integral, err = quadgk(s -> eigenint_ver2(s, par), maxminsel[2], maxminsel[1])
+    integral, err = quadgk(s -> eigenint(s, par), maxminsel[2], maxminsel[1])
     return integral
 end
 

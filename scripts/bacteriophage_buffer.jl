@@ -136,26 +136,42 @@ dHGTdt(0.449999, dcdt(0.4499999, BacPhagePar(s = 0.01)), BacPhagePar(s = 0.01))
 
 #time taken to reach gene fixation after switch in selection for different values of b
 
-test = selection_switch_bacphage(0.001, -0.05, 0.01, 0.0:1.0:1000.0)
-test.u[1]
 function calc_time_fixation(b, oldsel, newsel, tvals)
     solseries = selection_switch_bacphage(b, oldsel, newsel, tvals)
+    time = []
     for ti in eachindex(solseries.t)
-        if isapprox(solseries.u[ti], 1.0, reltol)
-            return solseries.t[ti]-50.0
+        if isapprox(solseries.u[ti][1], 1.0, atol=0.1)
+            time = solseries.t[ti]-50.0
+            break
         end
     end
+    return time
+end
+
+let 
+    data = selection_switch_bacphage(0.0001, -0.05, 0.01, 0.0:1.0:10000.0)
+    test = figure()
+    plot(data.t, data.u)
+    return test
 end
 
 function time_fixation_b(brange, oldsel, newsel, tvals)
-    timedate=zeros(length(brange))
+    timedata=zeros(length(brange))
     @threads for bi in eachindex(brange)
-        timedate[bi] = calc_time_fixation(brange[bi], oldsel, newsel, tvals)
+        timedata[bi] = calc_time_fixation(brange[bi], oldsel, newsel, tvals)
     end
-    return [brange, timedate]
+    return [brange, timedata]
 end
 
-
+let 
+    data = time_fixation_b(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
+    delayfigure = figure()
+    plot(data[1], data[2])
+    xlabel("b")
+    ylabel("Time")
+    # return delayfigure
+    savefig(joinpath(abpath(), "figs/delay_selectionswitch.png"))
+end
 
 ## PROOF 2 BUT INCREASING BACTERIOPHAGE REDUCES THE DELAY BETWEEN EQUILIBRIUM AND SYSTEM STATE. ALSO REDUCED CV
 #I should be able to show that b/r never affects delay due to the eigenvalue function just shifting but not flattening.  #ACTUALLY b does affect delay - just very small
@@ -528,16 +544,16 @@ let
     return test
 end
 #"bifurcations" changing mid
-function bifurcmid(midrange, tend)
+function bifurcmid(midrange, tsend)
     data = zeros(length(midrange), 3)
     u0=[0.5]
-    tspan=(0.0, tend)
+    tspan=(0.0, tsend)
     @threads for midi in eachindex(midrange)
         par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
         par.mid = midrange[midi]
         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
         sol = solve(prob, RadauIIA5())
-        solseries = sol(tend-1000:1.0:tend)
+        solseries = sol(tsend-1000:1.0:tsend)
         data[midi, 1] = midrange[midi]
         data[midi, 2] = maximum(solseries)
         data[midi, 3] = minimum(solseries)
@@ -564,31 +580,22 @@ end
 #eigen integral bifurcation
 #C=1
 #mid
-function bifurcintegral_eigen1_mid(midrange)
+function bifurcintegral_eigen1_mid(midrange, tsend)
     data = zeros(length(midrange), 3)
     u0=[0.5]
-    tspan=(0.0, 10000.0)
+    tspan=(0.0, tsend)
     @threads for midi in eachindex(midrange)
         par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
         data[midi, 1] = calc_integral_eigen1(par)
         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, Rodas5())
-        solseries = sol(9000.0:1.0:10000.0)
+        sol = solve(prob, RadauIIA5())
+        solseries = sol(tsend-1000.0:1.0:tsend)
         data[midi, 2] = maximum(solseries)
         data[midi, 3] = minimum(solseries)
     end
     return data
 end
 
-let 
-    midrange = -0.01:0.0001:0.001
-    data = bifurcintegral_eigen1_mid(midrange)
-    test = figure()
-    plot(data[:, 1], data[:, 2])
-    plot(data[:, 1], data[:, 3])
-    vlines(0.0, 0.0, 1.0, linestyles="dashed", color="black")
-    return test
-end
 
 #int C
 #mid
