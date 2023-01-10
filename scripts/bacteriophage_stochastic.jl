@@ -8,15 +8,15 @@ include("bacteriophage_commoncode.jl")
 
 #using PeriodicCallback
 
-let 
-    tsend = 10000.0
-    tvals = 0.0:1.0:tsend
-    data = bacphage_pert_sol(0.001, 0.5, 1.0, -0.007, 0.05, 0.9, 132, tsend, tvals)
-    test = figure()
-    plot(tvals, data[1])
-    plot(tvals, data[2])
-    return test
-end
+# let 
+#     tsend = 10000.0
+#     tvals = 0.0:1.0:tsend
+#     data = bacphage_pert_sol(0.001, 0.5, 1.0, -0.007, 0.05, 0.9, 132, tsend, tvals)
+#     test = figure()
+#     plot(tvals, data[1])
+#     plot(tvals, data[2])
+#     return test
+# end
 
 function noise_mid_reps(μ, corr, reps, tend)
     maxC = zeros(reps)
@@ -28,8 +28,6 @@ function noise_mid_reps(μ, corr, reps, tend)
     end
     return [mean(maxC), mean(minC)]
 end
-
-noise_mid_reps(-0.004, 0.8, 6, 100000.0)
 
 
 #white noise
@@ -93,19 +91,16 @@ end
 #     return test
 # end
 
+# let 
+#     tsend = 100000.0
+#     tvals = tsend-1000.0:1.0:tsend
+#     data = bacphage_pert_sol(0.001, 0.5, 1.0, -0.004, 0.05, 0.8, 4, tsend, tvals)
+#     println(maximum(data[1]))
+#     println(minimum(data[1]))
+#     test = figure()
+#     plot(tvals, data[1])
+#     plot(tvals, data[2])
+#     return test
+# end
 
-noise_mid_reps(-0.004, 0.8, 6, 100000.0)
-let 
-    tsend = 100000.0
-    tvals = tsend-1000.0:1.0:tsend
-    data = bacphage_pert_sol(0.001, 0.5, 1.0, -0.004, 0.05, 0.8, 4, tsend, tvals)
-    println(maximum(data[1]))
-    println(minimum(data[1]))
-    test = figure()
-    plot(tvals, data[1])
-    plot(tvals, data[2])
-    return test
-end
-
-bacphage_pert_sol(0.001, 0.5, 1.0, -0.004, 0.05, 0.8, 1, 100000.0, 99000.0:1.0:100000.0)
 #using SDE - where stochasticity is just on selection

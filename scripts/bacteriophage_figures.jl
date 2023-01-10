@@ -1,5 +1,7 @@
 include("packages.jl")
 include("bacteriophage_commoncode.jl")
+include("bacteriophage_buffer.jl")
+include("bacteriophage_stochastic.jl")
 
 #Figure
 let 
