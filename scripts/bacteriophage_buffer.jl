@@ -600,177 +600,177 @@ end
 #int C
 #mid
 
-function bifurcintegral_eigenint_mid(midrange)
-    data = zeros(length(midrange), 3)
-    u0=[0.5]
-    tspan=(0.0, 10000.0)
-    @threads for midi in eachindex(midrange)
-        par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
-        data[midi, 1] = calc_integral_eigenint(par)
-        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, Rodas5())
-        solseries = sol(9000.0:1.0:10000.0)
-        data[midi, 2] = maximum(solseries)
-        data[midi, 3] = minimum(solseries)
-    end
-    return data
-end
+# function bifurcintegral_eigenint_mid(midrange)
+#     data = zeros(length(midrange), 3)
+#     u0=[0.5]
+#     tspan=(0.0, 10000.0)
+#     @threads for midi in eachindex(midrange)
+#         par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
+#         data[midi, 1] = calc_integral_eigenint(par)
+#         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+#         sol = solve(prob, Rodas5())
+#         solseries = sol(9000.0:1.0:10000.0)
+#         data[midi, 2] = maximum(solseries)
+#         data[midi, 3] = minimum(solseries)
+#     end
+#     return data
+# end
 
-let 
-    midrange = -0.01:0.0001:0.001
-    data = bifurcintegral_eigenint_mid(midrange)
-    test = figure()
-    plot(data[:, 1], data[:, 2])
-    plot(data[:, 1], data[:, 3])
-    return test
-end
+# let 
+#     midrange = -0.01:0.0001:0.001
+#     data = bifurcintegral_eigenint_mid(midrange)
+#     test = figure()
+#     plot(data[:, 1], data[:, 2])
+#     plot(data[:, 1], data[:, 3])
+#     return test
+# end
 
-let #eigenvalues are just "conjugates" of each other so adding or subtracting eigenvalue integrals does nothing
-    srange = -0.2:0.01:0.2
-    data1 = [eigen1(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
-    dataint = [eigenint(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
-    eigenb = figure()
-    plot(srange, data1, color="blue")
-    plot(srange, dataint, color="green")
-    xlabel("s")
-    ylabel("λ")
-    legend()
-    return eigenb
-end
+# let #eigenvalues are just "conjugates" of each other so adding or subtracting eigenvalue integrals does nothing
+#     srange = -0.2:0.01:0.2
+#     data1 = [eigen1(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
+#     dataint = [eigenint(s, BacPhageSineForcedPar(b = 0.001)) for s in srange]
+#     eigenb = figure()
+#     plot(srange, data1, color="blue")
+#     plot(srange, dataint, color="green")
+#     xlabel("s")
+#     ylabel("λ")
+#     legend()
+#     return eigenb
+# end
 
 
-#relative time spent on 1 versus interior in a cycle - "bifurcation"
-function time_equil1(par)
-    bifurcval=bifurc(par)
-    if (bifurcval-par.mid)/par.amp > 1.0 || (bifurcval-par.mid)/par.amp < -1
-        return 0.0
-    end
-    t = asin((bifurcval-par.mid)/par.amp)/par.per
-    if par.mid > bifurcval
-        return (abs(t)+((pi/par.per)+abs(t)))/(2*pi/par.per)
-    elseif par.mid < bifurcval
-        return (((pi/par.per)-abs(t))-abs(t))/(2*pi/par.per)
-    else
-        return 0.5
-    end
-end
+# #relative time spent on 1 versus interior in a cycle - "bifurcation"
+# function time_equil1(par)
+#     bifurcval=bifurc(par)
+#     if (bifurcval-par.mid)/par.amp > 1.0 || (bifurcval-par.mid)/par.amp < -1
+#         return 0.0
+#     end
+#     t = asin((bifurcval-par.mid)/par.amp)/par.per
+#     if par.mid > bifurcval
+#         return (abs(t)+((pi/par.per)+abs(t)))/(2*pi/par.per)
+#     elseif par.mid < bifurcval
+#         return (((pi/par.per)-abs(t))-abs(t))/(2*pi/par.per)
+#     else
+#         return 0.5
+#     end
+# end
 
-function bifurctimeequil1_mid(midrange)
-    data = zeros(length(midrange), 3)
-    u0=[0.5]
-    tspan=(0.0, 10000.0)
-    @threads for midi in eachindex(midrange)
-        par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
-        data[midi, 1] = time_equil1(par)
-        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, Rodas5())
-        solseries = sol(9000.0:1.0:10000.0)
-        data[midi, 2] = maximum(solseries)
-        data[midi, 3] = minimum(solseries)
-    end
-    return data
-end
+# function bifurctimeequil1_mid(midrange)
+#     data = zeros(length(midrange), 3)
+#     u0=[0.5]
+#     tspan=(0.0, 10000.0)
+#     @threads for midi in eachindex(midrange)
+#         par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
+#         data[midi, 1] = time_equil1(par)
+#         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+#         sol = solve(prob, Rodas5())
+#         solseries = sol(9000.0:1.0:10000.0)
+#         data[midi, 2] = maximum(solseries)
+#         data[midi, 3] = minimum(solseries)
+#     end
+#     return data
+# end
 
-let 
-    midrange = -0.01:0.001:0.001
-    data = bifurctimeequil1_mid(midrange)
-    test = figure()
-    plot(data[:, 1], data[:, 2])
-    plot(data[:, 1], data[:, 3])
-    return test
-end
+# let 
+#     midrange = -0.01:0.001:0.001
+#     data = bifurctimeequil1_mid(midrange)
+#     test = figure()
+#     plot(data[:, 1], data[:, 2])
+#     plot(data[:, 1], data[:, 3])
+#     return test
+# end
 
-#"bifurcation" integral of sine wave above 0 and above bifurcation (shift sine wave by bifurcation value)
-function calc_int_sineshifted(par)
-    bifurcval=bifurc(par)
-    integral, err = quadgk(x -> sel_sine(par, x)+abs(bifurcval),0.0, 2*pi/par.per)
-    return integral
-end
+# #"bifurcation" integral of sine wave above 0 and above bifurcation (shift sine wave by bifurcation value)
+# function calc_int_sineshifted(par)
+#     bifurcval=bifurc(par)
+#     integral, err = quadgk(x -> sel_sine(par, x)+abs(bifurcval),0.0, 2*pi/par.per)
+#     return integral
+# end
 
-calc_int_sineshifted(BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=-0.003))
+# calc_int_sineshifted(BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=-0.003))
 
-function bifurc_intsineshifted_mid(midrange)
-    data = zeros(length(midrange), 3)
-    u0=[0.5]
-    tspan=(0.0, 10000.0)
-    @threads for midi in eachindex(midrange)
-        par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
-        data[midi, 1] = calc_int_sineshifted(par)
-        prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
-        sol = solve(prob, Rodas5())
-        solseries = sol(9000.0:1.0:10000.0)
-        data[midi, 2] = maximum(solseries)
-        data[midi, 3] = minimum(solseries)
-    end
-    return data
-end
+# function bifurc_intsineshifted_mid(midrange)
+#     data = zeros(length(midrange), 3)
+#     u0=[0.5]
+#     tspan=(0.0, 10000.0)
+#     @threads for midi in eachindex(midrange)
+#         par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
+#         data[midi, 1] = calc_int_sineshifted(par)
+#         prob = ODEProblem(bacphage_sine_forced_ver2!, u0, tspan, par)
+#         sol = solve(prob, Rodas5())
+#         solseries = sol(9000.0:1.0:10000.0)
+#         data[midi, 2] = maximum(solseries)
+#         data[midi, 3] = minimum(solseries)
+#     end
+#     return data
+# end
 
-let 
-    midrange = -0.01:0.001:0.001
-    data = bifurc_intsineshifted_mid(midrange)
-    test = figure()
-    plot(data[:, 1], data[:, 2])
-    plot(data[:, 1], data[:, 3])
-    return test
-end
+# let 
+#     midrange = -0.01:0.001:0.001
+#     data = bifurc_intsineshifted_mid(midrange)
+#     test = figure()
+#     plot(data[:, 1], data[:, 2])
+#     plot(data[:, 1], data[:, 3])
+#     return test
+# end
 
-#geometric mean - "bifucation"
-function geomean_sineshift(par, a, b)
-    @unpack per, amp, mid = par
-    bifurcval=bifurc_ver2(par)
-    integral, err = quadgk(t -> log(Complex(sel_sine(par, t)+abs(bifurcval))), a, b)
-    return exp((1 / (b-a)) * integral )
-end
+# #geometric mean - "bifucation"
+# function geomean_sineshift(par, a, b)
+#     @unpack per, amp, mid = par
+#     bifurcval=bifurc_ver2(par)
+#     integral, err = quadgk(t -> log(Complex(sel_sine(par, t)+abs(bifurcval))), a, b)
+#     return exp((1 / (b-a)) * integral )
+# end
 
-function bifurc_geom_mid(midrange)
-    data = zeros(length(midrange), 3)
-    u0=[0.5]
-    tspan=(0.0, 10000.0)
-    @threads for midi in eachindex(midrange)
-        par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
-        data[midi, 1] = real(geomean_sine(par, 0.0, 2*pi/par.per))
-        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, Rodas5())
-        solseries = sol(9000.0:1.0:10000.0)
-        data[midi, 2] = maximum(solseries)
-        data[midi, 3] = minimum(solseries)
-    end
-    return data
-end
+# function bifurc_geom_mid(midrange)
+#     data = zeros(length(midrange), 3)
+#     u0=[0.5]
+#     tspan=(0.0, 10000.0)
+#     @threads for midi in eachindex(midrange)
+#         par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
+#         data[midi, 1] = real(geomean_sine(par, 0.0, 2*pi/par.per))
+#         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+#         sol = solve(prob, Rodas5())
+#         solseries = sol(9000.0:1.0:10000.0)
+#         data[midi, 2] = maximum(solseries)
+#         data[midi, 3] = minimum(solseries)
+#     end
+#     return data
+# end
 
-function bifurc_geomshift_mid(midrange)
-    data = zeros(length(midrange), 3)
-    u0=[0.5]
-    tspan=(0.0, 10000.0)
-    @threads for midi in eachindex(midrange)
-        par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
-        data[midi, 1] = real(geomean_sineshift(par, 0.0, 2*pi/par.per))
-        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, Rodas5())
-        solseries = sol(9000.0:1.0:10000.0)
-        data[midi, 2] = maximum(solseries)
-        data[midi, 3] = minimum(solseries)
-    end
-    return data
-end
+# function bifurc_geomshift_mid(midrange)
+#     data = zeros(length(midrange), 3)
+#     u0=[0.5]
+#     tspan=(0.0, 10000.0)
+#     @threads for midi in eachindex(midrange)
+#         par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
+#         data[midi, 1] = real(geomean_sineshift(par, 0.0, 2*pi/par.per))
+#         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+#         sol = solve(prob, Rodas5())
+#         solseries = sol(9000.0:1.0:10000.0)
+#         data[midi, 2] = maximum(solseries)
+#         data[midi, 3] = minimum(solseries)
+#     end
+#     return data
+# end
 
-let 
-    midrange = -0.01:0.001:0.001
-    data = bifurc_geom_mid(midrange)
-    test = figure()
-    plot(data[:, 1], data[:, 2])
-    plot(data[:, 1], data[:, 3])
-    return test
-end
+# let 
+#     midrange = -0.01:0.001:0.001
+#     data = bifurc_geom_mid(midrange)
+#     test = figure()
+#     plot(data[:, 1], data[:, 2])
+#     plot(data[:, 1], data[:, 3])
+#     return test
+# end
 
-let 
-    midrange = -0.01:0.001:0.001
-    data = bifurc_geomshift_mid(midrange)
-    test = figure()
-    plot(data[:, 1], data[:, 2])
-    plot(data[:, 1], data[:, 3])
-    return test
-end
+# let 
+#     midrange = -0.01:0.001:0.001
+#     data = bifurc_geomshift_mid(midrange)
+#     test = figure()
+#     plot(data[:, 1], data[:, 2])
+#     plot(data[:, 1], data[:, 3])
+#     return test
+# end
 
 
 #CHECK IF INITIAL VALUE PROBLEM
@@ -783,14 +783,7 @@ end
 #testing of crosscor
 
 #maybe best thing is to maximise crosscor and what is this lag - make sure lrange is larger than period
-function calc_equil(sel)
-    len = length(sel)
-        equilvals = zeros(len)
-        for i in 1:len
-            equilvals[i] = equil(sel[i])
-        end
-        return equilvals
-end
+
 
 function trackingcor_sine_per(perrange, lrange)
     trackcor = zeros(length(perrange))
@@ -855,14 +848,6 @@ end
 
 
 
-let 
-    data = trackingcor_sine_b(0.0:0.001:0.06, 1:1:100)
-    test = figure()
-    plot(0.0:0.001:0.06, data)
-    xlabel("b")
-    ylabel("Delay (from crosscorrelation)")
-    return test
-end
 
 
 #DO I NEED TO STANDARDIZE BY UNDERLYING TIME SCALE OF SELECTION WHEN CHANGING PERIOD
@@ -930,4 +915,123 @@ let #Rodas5
     return solseries
 end
 
+# tracking attractor
+let
+    tsend = 10000.0
+    u0=[0.5]
+    tspan=(0.0, tsend)
+    lrange = 1:1:100
+    freq = 1.0
+    par = BacPhageSineForcedPar(b = 0.01, per=0.5, amp=0.1, mid=-0.002)
+    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+    sol = solve(prob, RadauIIA5())
+    solseries = sol(tsend-1000.0:freq:tsend)
+    selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
+    fullselection = [sel_sine(par, t) for t in 0.0:freq:tsend]
+    seriesselection = fullselection[Int64(tsend)-999:Int64(tsend)+1]
+    # seriesattractor = attractordata(seriesselection, par)
+    # cordata = crosscor(solseries[1,:], seriesattractor, lrange)
+    # test = figure()
+    # plot(tsend-200.0:1.0:tsend, solseries.u)
+    # plot(tsend-200.0:1.0:tsend, seriesattractor)
+    # return test
+    return selection
+end
 
+(10000/0.1) - (1000/0.1)
+1/0.1
+function attractordata(selectiondata, par)
+    attractor = zeros(length(selectiondata))
+    for i in 1:length(selectiondata)
+        attractor[i] = stableequil(selectiondata[i], par)
+    end
+    return attractor
+end
+
+function trackattractor(solutiondata, attractordata)
+    difference = zeros(length(solutiondata))
+    for i in 1:length(solutiondata)
+        difference[i] = abs(solutiondata[1,i] - attractordata[i])
+    end
+    return sum(difference)
+end
+
+function trackattractor_b(brange, tsend)
+    data = zeros(length(brange), 3)
+    u0=[0.5]
+    tspan=(0.0, tsend)
+    @threads for bi in eachindex(brange)
+        par = BacPhageSineForcedPar(b = brange[bi], per=0.5, amp=0.4, mid=-0.002)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+        sol = solve(prob, RadauIIA5())
+        solseries = sol(tsend-1000.0:1.0:tsend)
+        selection = [sel_sine(par, t) for t in tsend-1000.0:1.0:tsend]
+        seriesattractor = attractordata(selection, par)
+        difference = trackattractor(solseries, seriesattractor)
+        data[bi, 1] = brange[bi]
+        data[bi, 2] = difference
+        # data[bi, 3] = minimum(difference)
+    end
+    return data
+end
+
+data = trackattractor_b(0.0001:0.0001:0.01, 10000.0)
+data[2]
+
+let
+    data = trackattractor_b(0.0001:0.0001:0.01, 10000.0)
+    testfigure = figure()
+    plot(data[:,1], data[:,2])
+    # plot(data[:,1], data[:,3])
+    xlabel("b")
+    ylabel("Sum difference")
+    return testfigure
+end
+
+#PROBLEM If use sum difference - then above and below balance out - 0 does not mean tracking attractor better
+
+let 
+    tsend = 10000.0
+    u0=[0.5]
+    tspan=(0.0, tsend)
+    par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=-0.002)
+    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+    sol = solve(prob, RadauIIA5())
+    solseries = sol(tsend-1000.0:1.0:tsend)
+    fullselection = [sel_sine(par, t) for t in 0.0:1.0:tsend]
+    seriesselection = fullselection[Int64(tsend)-999:Int64(tsend)+1]
+    # return seriesselection
+    return solseries[1,:]
+end
+
+
+testselection = [sel_sine(BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=-0.002), t) for t in 0.0:1.0:10000.0]
+seriesselection = testselection[Int64(10000.0)-1000:Int64(10000.0)+1]
+
+#cross cor
+function trackingcor_b(brange, lrange, freq, tsend)
+    data = zeros(length(brange), 2)
+    u0=[0.5]
+    tspan=(0.0, tsend)
+    @threads for bi in eachindex(brange)
+        par = BacPhageSineForcedPar(b = brange[bi], per=0.5, amp=0.4, mid=-0.002)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+        sol = solve(prob, RadauIIA5())
+        solseries = sol(tsend-1000.0:freq:tsend)
+        selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
+        seriesattractor = attractordata(selection, par)
+        cordata = crosscor(solseries[1,:], seriesattractor, lrange)
+        data[bi, 1] = brange[bi]
+        data[bi, 2] = findmax(cordata)[2]
+    end
+    return data
+end
+
+let 
+    data = trackingcor_b(0.0001:0.0001:0.01, 1:1:1000, 0.01, 10000.0)
+    test = figure()
+    plot(data[:,1], data[:,2])
+    xlabel("b")
+    ylabel("Delay (from crosscorrelation)")
+    return test
+end
