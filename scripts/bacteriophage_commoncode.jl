@@ -87,6 +87,7 @@ function interior_equil(s, par)
     return -b / (r+s)
 end
 
+
 function bifurc(par)
     @unpack b, r = par
     return -b - r
