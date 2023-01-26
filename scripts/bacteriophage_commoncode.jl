@@ -3,16 +3,6 @@ function abpath()
     replace(@__DIR__, "scripts" => "")
 end
 
-function vector_prod(sol)
-    soldata=zeros(length(sol))
-    seldata=zeros(length(sol))
-    for i in 1:length(sol)
-        soldata[i] = sol[i][1]
-        seldata[i] = sol[i][2]
-    end
-    return [soldata, seldata]
-end
-
 #Basic model
 @with_kw mutable struct BacPhagePar
     r = 0.001 #to match niehus 10^-4 top value
@@ -25,8 +15,6 @@ function bacphage!(du, u, p, t,)
     du[1] = r * u[1] * (1 - u[1]) +  s * u[1] * ( 1 - u[1] ) + b * ( 1 - u[1] )
     return
 end
-
-
 
 function selection_switch_bacphage(b, oldsel, newsel, tvals)
     par = BacPhagePar(b = b, s = oldsel)
@@ -64,13 +52,6 @@ function parse_r_b_s(solseries, par)
     lysodata = [lysogeny(C, b) for C in solseries[1,:]]
     return [conjdata, selecdata, lysodata]
 end
-
-# function bacphage_wobac!(du, u, p, t,)
-#     @unpack r, b, s = p
-#     du[1] = r * u[1] * (1 - u[1]) + ( s / ( 1 + s * u[1] ) ) * u[1] * ( 1 - u[1] )
-#     return
-# end #can probably remove this and just change the b parameter to zero
-
 
 #Equilibrium and bifurcation functions
 function stableequil(s, par)
@@ -118,13 +99,6 @@ function calc_integral_eigenint(par)
     maxminsel = [maximum(sel), minimum(sel)]
     integral, err = quadgk(s -> eigenint(s, par), maxminsel[2], maxminsel[1])
     return integral
-end
-
-
-function geomean_sine(par, a, b)
-    @unpack per, amp, mid = par
-    integral, err = quadgk(t -> log(Complex(sel_sine(par, t))), a, b)
-    return exp((1 / (b-a)) * integral )
 end
 
 #With sine environmental selection

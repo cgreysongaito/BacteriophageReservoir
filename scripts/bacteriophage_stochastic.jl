@@ -6,6 +6,9 @@ include("bacteriophage_commoncode.jl")
 #red noise effects will be dependent on "integral" of the red noise (above the bifurcation point) in combination with r, b, and mid/mean
 #BUT unless you have really strong r and b - still highly unlikely to go to fixation
 
+
+#Prediction for white and red noise for tracking attractor CV
+
 #using PeriodicCallback
 
 # let 
