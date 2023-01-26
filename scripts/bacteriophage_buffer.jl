@@ -938,8 +938,7 @@ let
     return selection
 end
 
-(10000/0.1) - (1000/0.1)
-1/0.1
+
 function attractordata(selectiondata, par)
     attractor = zeros(length(selectiondata))
     for i in 1:length(selectiondata)
@@ -1033,5 +1032,94 @@ let
     plot(data[:,1], data[:,2])
     xlabel("b")
     ylabel("Delay (from crosscorrelation)")
+    return test
+end
+
+let
+    u0=[0.5]
+    tsend = 10000.0
+    tspan = (0.0, tsend)
+    freq = 0.1
+    par = BacPhageSineForcedPar(b = 0.000005, per=0.5, amp=0.4, mid=-0.002)
+    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+    sol = solve(prob, RadauIIA5())
+    solseries = sol(tsend-1000.0:freq:tsend)
+    selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
+    seriesattractor = attractordata(selection, par)
+    test = figure()
+    plot(tsend-1000.0:freq:tsend, solseries.u)
+    plot(tsend-1000.0:freq:tsend, seriesattractor)
+    xlim(9975,10000)
+    return test
+end
+
+#using CV to think about tracking attractor
+function trackattractor_CV(solutiondata, attractordata)
+    solutionCV = std(solutiondata)/mean(solutiondata)
+    attractorCV = std(attractordata)/mean(solutiondata)
+    return [solutionCV, attractorCV]
+end
+
+function trackingcor_CV_b(brange, freq, tsend)
+    data = zeros(length(brange), 4)
+    u0=[0.5]
+    tspan=(0.0, tsend)
+    @threads for bi in eachindex(brange)
+        par = BacPhageSineForcedPar(b = brange[bi], per=0.5, amp=0.4, mid=-0.002)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+        sol = solve(prob, RadauIIA5())
+        solseries = sol(tsend-1000.0:freq:tsend)
+        selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
+        seriesattractor = attractordata(selection, par)
+        CV = trackattractor_CV(solseries, seriesattractor)
+        data[bi, 1] = brange[bi]
+        data[bi, 2] = CV[1]
+        data[bi, 3] = CV[2]
+        data[bi, 4] = CV[1]/CV[2]
+    end
+    return data
+end
+
+let 
+    data = trackingcor_CV_b(0.0001:0.0001:0.003, 0.1, 10000.0)
+    test = figure()
+    plot(data[:,1], data[:,4], color="blue")
+    # plot(data[:,1], data[:,3], color="red")
+    return test
+end
+
+
+#using range to think about tracking attractor
+function trackattractor_range(solutiondata, attractordata)
+    solutionrange = maximum(solutiondata) - minimum(solutiondata)
+    attractorrange = maximum(attractordata) - minimum(attractordata)
+    return [solutionrange, attractorrange]
+end
+
+function trackingcor_range_b(brange, freq, tsend)
+    data = zeros(length(brange), 4)
+    u0=[0.5]
+    tspan=(0.0, tsend)
+    @threads for bi in eachindex(brange)
+        par = BacPhageSineForcedPar(b = brange[bi], per=0.5, amp=0.4, mid=-0.002)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+        sol = solve(prob, RadauIIA5())
+        solseries = sol(tsend-1000.0:freq:tsend)
+        selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
+        seriesattractor = attractordata(selection, par)
+        range = trackattractor_range(solseries, seriesattractor)
+        data[bi, 1] = brange[bi]
+        data[bi, 2] = range[1]
+        data[bi, 3] = range[2]
+        data[bi, 4] = range[1]/range[2]
+    end
+    return data
+end
+
+let 
+    data = trackingcor_range_b(0.0001:0.0001:0.003, 0.1, 10000.0)
+    test = figure()
+    plot(data[:,1], data[:,4], color="blue")
+    # plot(data[:,1], data[:,3], color="red")
     return test
 end
