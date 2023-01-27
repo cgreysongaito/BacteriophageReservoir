@@ -2,19 +2,70 @@ include("packages.jl")
 include("bacteriophage_commoncode.jl")
 
 #Proof 1 YES CONJUGATION DOES MOST OF THE WORK
+
+#Examining HGT across C with r, b, s(mid) stacked on top of each other (geometric intuition)
+
+function fillbetween_setup(data_low, data_high)
+    final_data = zeros(length(data_low))
+    for i in 1:length(data_low)
+        final_data[i] = data_low[i] + data_high[i]
+    end
+    return final_data
+end
+
+let 
+    par = BacPhagePar(s = -0.002)
+    Crange = 0.0:0.01:1.0
+    conj = [conjugation(C, par.r) for C in Crange]
+    bac = [lysogeny(C, par.b) for C in Crange]
+    sel = [selection(C, par.s) for C in Crange]
+    conj_bac = fillbetween_setup(conj, bac)
+    conj_bac_sel = fillbetween_setup(conj_bac, sel)
+    test = figure()
+    # plot(Crange, sel)
+    fill_between(Crange, sel, color="#73D055FF")
+    fill_between(Crange, conj, color="#440154FF")
+    fill_between(Crange, conj, conj_bac, color="#404788FF")
+    # fill_between(Crange, conj_bac, conj_bac_sel, color="#73D055FF")
+    return test
+end
+
+let 
+    par = BacPhagePar(s = -0.003)
+    Crange = 0.0:0.01:1.0
+    conj = [conjugation(C, par.r) for C in Crange]
+    bac = [lysogeny(C, par.b) for C in Crange]
+    sel = [selection(C, par.s) for C in Crange]
+    conj_bac = fillbetween_setup(conj, bac)
+    conj_bac_sel = fillbetween_setup(conj_bac, sel)
+    test = figure()
+    # plot(Crange, sel)
+    fill_between(Crange, sel, color="#73D055FF")
+    fill_between(Crange, conj, color="#440154FF")
+    fill_between(Crange, conj, conj_bac, color="#404788FF")
+    # fill_between(Crange, conj_bac, conj_bac_sel, color="#73D055FF")
+    return test
+end
+
+let 
+    par = BacPhagePar(s = -0.001)
+    Crange = 0.0:0.01:1.0
+    conj = [conjugation(C, par.r) for C in Crange]
+    bac = [lysogeny(C, par.b) for C in Crange]
+    sel = [selection(C, par.s) for C in Crange]
+    conj_bac = fillbetween_setup(conj, bac)
+    conj_bac_sel = fillbetween_setup(conj_bac, sel)
+    test = figure()
+    # plot(Crange, sel)
+    fill_between(Crange, sel, color="#73D055FF")
+    fill_between(Crange, conj, color="#440154FF")
+    fill_between(Crange, conj, conj_bac, color="#404788FF")
+    # fill_between(Crange, conj_bac, conj_bac_sel, color="#73D055FF")
+    return test
+end
+
 ##exploring contributions of conjugation versus selection versus lysogeny after a change to positive selection
 #May be able to get same intuition from the equations - but time series still useful
-# function conjugation(C, r)
-#     return r * C * (1 - C)
-# end
-
-# function selection(C, s)
-#     return ( s / ( 1 + s * C ) ) * C * ( 1 - C )
-# end
-
-# function lysogeny(C, b)
-#     return  b * ( 1 - C )
-# end
 
 let 
     u0 = [0.5]
@@ -22,12 +73,12 @@ let
 
     condition(u,t,integrator) = t > 200.0 
     function changesel!(integrator)
-        integrator.p.s=0.01
+        integrator.p.s=-0.001
     end
 
     cb = DiscreteCallback(condition, changesel!)
-    prob = ODEProblem(bacphage!, u0, tspan, BacPhagePar(b = 0.001, s=-0.25))
-    sol = solve(prob,Rodas5(), callback=cb)
+    prob = ODEProblem(bacphage!, u0, tspan, BacPhagePar(b = 0.001, r=0.001, s=-0.004))
+    sol = solve(prob,RadauIIA5(), callback=cb)
     shortsol = sol(0.0:0.5:900.0)
     # test = figure()
     # plot(sol.t, sol.u)
