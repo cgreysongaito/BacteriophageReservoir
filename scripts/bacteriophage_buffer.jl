@@ -26,12 +26,13 @@ let
     fill_between(Crange, sel, color="#73D055FF")
     fill_between(Crange, conj, color="#440154FF")
     fill_between(Crange, conj, conj_bac, color="#404788FF")
+    title("s=-0.002")
     # fill_between(Crange, conj_bac, conj_bac_sel, color="#73D055FF")
     return test
 end
 
 let 
-    par = BacPhagePar(s = -0.003)
+    par = BacPhagePar(s = -0.004)
     Crange = 0.0:0.01:1.0
     conj = [conjugation(C, par.r) for C in Crange]
     bac = [lysogeny(C, par.b) for C in Crange]
@@ -44,6 +45,7 @@ let
     fill_between(Crange, conj, color="#440154FF")
     fill_between(Crange, conj, conj_bac, color="#404788FF")
     # fill_between(Crange, conj_bac, conj_bac_sel, color="#73D055FF")
+    title("s=-0.004")
     return test
 end
 
@@ -61,40 +63,52 @@ let
     fill_between(Crange, conj, color="#440154FF")
     fill_between(Crange, conj, conj_bac, color="#404788FF")
     # fill_between(Crange, conj_bac, conj_bac_sel, color="#73D055FF")
+    title("s=-0.001")
     return test
 end
 
 ##exploring contributions of conjugation versus selection versus lysogeny after a change to positive selection
 #May be able to get same intuition from the equations - but time series still useful
 
+
 let 
     u0 = [0.5]
-    tspan=(0.0, 900.0)
-
-    condition(u,t,integrator) = t > 200.0 
+    tend = 5000.0
+    tspan=(0.0, tend)
+    par = BacPhagePar(b = 0.001, r=0.001, s=-0.004)
+    condition(u,t,integrator) = t > 2000.0 
     function changesel!(integrator)
         integrator.p.s=-0.001
     end
 
     cb = DiscreteCallback(condition, changesel!)
-    prob = ODEProblem(bacphage!, u0, tspan, BacPhagePar(b = 0.001, r=0.001, s=-0.004))
+    prob = ODEProblem(bacphage!, u0, tspan, par)
     sol = solve(prob,RadauIIA5(), callback=cb)
-    shortsol = sol(0.0:0.5:900.0)
+    shortsol = sol(0.0:0.5:tend)
     # test = figure()
     # plot(sol.t, sol.u)
-    conjdata = [conjugation(C, 0.1) for C in shortsol[1, 1:end]]
-    selecdata = [selection(C, 0.01) for C in shortsol[1,1:end]]
-    lysodata = [lysogeny(C, 0.01) for C in shortsol[1,1:end]]
+    conjdata = [conjugation(C, par.r) for C in shortsol[1, 1:end]]
+    selecdata = [selection(C, par.s) for C in shortsol[1,1:end]]
+    lysodata = [lysogeny(C, par.b) for C in shortsol[1,1:end]]
 
     test = figure()
+    subplot(2,1,1)
+    plot(shortsol.t, shortsol.u)
+    subplot(2,1,2)
     plot(shortsol.t, conjdata, color="blue", label="Conjugation")
     plot(shortsol.t, selecdata, color="orange", label="Selection")
     plot(shortsol.t, lysodata, color="red", label="Lysogeny")
     xlabel("Time")
     ylabel("d(comp)/dt")
     legend()
+    tight_layout()
     return test
 end
+
+#cumulative HGT graph as s changes from one value to larger value and from larger value to smaller value
+
+
+#NOTE that selection is not HGT!!!*** but r and b are
 
 #what is the speed of "recovery" with and without lysogeny
 #so problem - depending on selection if too negative then should lose gene BUT because continuous model never reach exactly 0.00000
