@@ -1,7 +1,7 @@
 include("packages.jl")
 include("bacteriophage_commoncode.jl")
 
-#Proof 1 YES CONJUGATION DOES MOST OF THE WORK
+#Proof 1 bacteriophage does most of the work (but depends)
 
 #Examining HGT across C with r, b, s(mid) stacked on top of each other (geometric intuition)
 
@@ -109,6 +109,24 @@ end
 
 
 #NOTE that selection is not HGT!!!*** but r and b are
+
+#graphing reducing b but keeping s width the same
+let 
+    u0=[0.5]
+    tsend=10000.0
+    tspan=(0.0, tsend)
+    freq = .1
+    par = BacPhageSineForcedPar(b = 0.00001, per=0.5, amp=0.1, mid=-0.002)
+    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+    sol = solve(prob, RadauIIA5())
+    solseries = sol(tsend-50.0:freq:tsend)
+    selection = [sel_sine(par, t) for t in tsend-50.0:freq:tsend]
+    seriesattractor = attractordata(selection, par)
+    test = figure()
+    plot(solseries.t, solseries.u)
+    plot(solseries.t, seriesattractor)
+    return test
+end
 
 #what is the speed of "recovery" with and without lysogeny
 #so problem - depending on selection if too negative then should lose gene BUT because continuous model never reach exactly 0.00000
