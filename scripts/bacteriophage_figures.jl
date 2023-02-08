@@ -3,6 +3,30 @@ include("bacteriophage_commoncode.jl")
 include("bacteriophage_buffer.jl")
 include("bacteriophage_stochastic.jl")
 
+
+#Figure - HGT and selection work
+let 
+    par = BacPhagePar(s = -0.002)
+    Crange = 0.0:0.01:1.0
+    conj = [conjugation(C, par.r) for C in Crange]
+    bac = [lysogeny(C, par.b) for C in Crange]
+    sel = [selection(C, par.s) for C in Crange]
+    conj_bac = fillbetween_setup(conj, bac)
+    conj_bac_sel = fillbetween_setup(conj_bac, sel)
+    HGTsel_work = figure(figsize=(8,7))
+    # plot(Crange, sel)
+    fill_between(Crange, sel, color="#73D055FF")
+    fill_between(Crange, conj, color="#440154FF")
+    fill_between(Crange, conj, conj_bac, color="#404788FF")
+    ylabel("Total HGT work")
+    xlabel("C")
+    title("s=-0.002")
+    # fill_between(Crange, conj_bac, conj_bac_sel, color="#73D055FF")
+    # return HGTsel_work
+    savefig(joinpath(abpath(), "figs/HGTsel_work_002.pdf"))
+end
+
+
 #Figure
 let 
     data = time_fixation_b(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
@@ -115,4 +139,16 @@ let
     tight_layout()
     # return red_noise
     savefig(joinpath(abpath(), "figs/rednoise_mid_figure.pdf"))
+end
+
+#Final figure (stability)
+let 
+    data = trackingcor_CV_b(0.0001:0.0001:0.003, 0.1, 10000.0)
+    stability_b = figure()
+    plot(data[:,1], data[:,4], color="blue")
+    # plot(data[:,1], data[:,3], color="red")
+    ylabel("CV(Solution)/CV(Attractor)")
+    xlabel("bacteriophage (b)")
+    # return stability_b
+    savefig(joinpath(abpath(), "figs/bacteriophage_stability.pdf"))
 end

@@ -412,12 +412,12 @@ function trackattractor_CV(solutiondata, attractordata)
     return [solutionCV, attractorCV]
 end
 
-function trackingcor_CV_b(brange, freq, tsend)
+function trackingcor_CV_b(brange, rval, freq, tsend)
     data = zeros(length(brange), 4)
     u0=[0.5]
     tspan=(0.0, tsend)
     @threads for bi in eachindex(brange)
-        par = BacPhageSineForcedPar(b = brange[bi], per=0.5, amp=0.4, mid=-0.002)
+        par = BacPhageSineForcedPar(b = brange[bi], r=rval, per=0.5, amp=0.4, mid=-0.002)
         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
         sol = solve(prob, RadauIIA5())
         solseries = sol(tsend-1000.0:freq:tsend)
@@ -433,13 +433,173 @@ function trackingcor_CV_b(brange, freq, tsend)
 end
 
 let 
-    data = trackingcor_CV_b(0.0001:0.0001:0.003, 0.1, 10000.0)
+    data_lowr = trackingcor_CV_b(0.00001:0.00001:0.003, 0.0, 0.1, 10000.0)
+    data_medr = trackingcor_CV_b(0.00001:0.00001:0.003, 0.0005, 0.1, 10000.0)
+    data_highr = trackingcor_CV_b(0.00001:0.00001:0.003, 0.001, 0.1, 10000.0)
+    stability_b = figure()
+    subplot(1,3,1)
+    plot(data_lowr[:,1], data_lowr[:,4], color="blue")
+    ylabel("CV(Solution)/CV(Attractor)")
+    xlabel("bacteriophage (b)")
+    subplot(1,3,2)
+    plot(data_medr[:,1], data_medr[:,4], color="blue")
+    ylabel("CV(Solution)/CV(Attractor)")
+    xlabel("bacteriophage (b)")
+    subplot(1,3,3)
+    plot(data_highr[:,1], data_highr[:,4], color="blue")
+    ylabel("CV(Solution)/CV(Attractor)")
+    xlabel("bacteriophage (b)")
+    tight_layout()
+    return stability_b
+    # savefig(joinpath(abpath(), "figs/conjugation_stability.pdf"))
+end
+
+function trackingcor_CV_r(rrange, bval, freq, tsend)
+    data = zeros(length(rrange), 4)
+    u0=[0.5]
+    tspan=(0.0, tsend)
+    @threads for ri in eachindex(rrange)
+        par = BacPhageSineForcedPar(r = rrange[ri], b = bval, per=0.5, amp=0.4, mid=-0.002)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+        sol = solve(prob, RadauIIA5())
+        solseries = sol(tsend-1000.0:freq:tsend)
+        selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
+        seriesattractor = attractordata(selection, par)
+        CV = trackattractor_CV(solseries, seriesattractor)
+        data[ri, 1] = rrange[ri]
+        data[ri, 2] = CV[1]
+        data[ri, 3] = CV[2]
+        data[ri, 4] = CV[1]/CV[2]
+    end
+    return data
+end
+
+let 
+    data_lowb = trackingcor_CV_r(0.00001:0.00001:0.003, 0.0, 0.1, 10000.0)
+    data_medb = trackingcor_CV_r(0.00001:0.00001:0.003, 0.0005, 0.1, 10000.0)
+    data_highb = trackingcor_CV_r(0.00001:0.00001:0.003, 0.001, 0.1, 10000.0)
+    stability_r = figure()
+    subplot(1,3,1)
+    plot(data_lowb[:,1], data_lowb[:,4], color="blue")
+    ylabel("CV(Solution)/CV(Attractor)")
+    xlabel("conjugation (r)")
+    subplot(1,3,2)
+    plot(data_medb[:,1], data_medb[:,4], color="blue")
+    ylabel("CV(Solution)/CV(Attractor)")
+    xlabel("conjugation (r)")
+    subplot(1,3,3)
+    plot(data_highb[:,1], data_highb[:,4], color="blue")
+    ylabel("CV(Solution)/CV(Attractor)")
+    xlabel("conjugation (r)")
+    tight_layout()
+    return stability_r
+    # savefig(joinpath(abpath(), "figs/conjugation_stability.pdf"))
+end
+
+let
+    u0=[0.5]
+    tsend = 10000.0
+    freq=0.1
+    tspan=(0.0, tsend)
+    par = BacPhageSineForcedPar(r = 0.00001, b = 0.001, per=0.5, amp=0.4, mid=-0.002)
+    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+    sol = solve(prob, RadauIIA5())
+    solseries = sol(tsend-1000.0:freq:tsend)
+    selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
+    seriesattractor = attractordata(selection, par)
     test = figure()
-    plot(data[:,1], data[:,4], color="blue")
-    # plot(data[:,1], data[:,3], color="red")
+    plot(solseries.t,solseries.u)
+    plot(solseries.t, seriesattractor)
     return test
 end
 
+let
+    u0=[0.5]
+    tsend = 10000.0
+    freq=0.1
+    tspan=(0.0, tsend)
+    par = BacPhageSineForcedPar(r = 0.001, b = 0.00001, per=0.5, amp=0.4, mid=-0.002)
+    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+    sol = solve(prob, RadauIIA5())
+    solseries = sol(tsend-1000.0:freq:tsend)
+    selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
+    seriesattractor = attractordata(selection, par)
+    test = figure()
+    plot(solseries.t,solseries.u)
+    plot(solseries.t, seriesattractor)
+    return test
+end
+
+bifurc1 = [interior_equil(s, BacPhageSineForcedPar(r = 0.001, b = 0.00001, per=0.5, amp=0.4, mid=-0.002)) for s in -0.01:0.001:0.01]
+
+let 
+    srange = -0.01:0.00001:-0.00101
+    bifurc1 = [interior_equil(s, BacPhageSineForcedPar(r = 0.001, b = 0.00001, per=0.5, amp=0.4, mid=-0.002)) for s in -0.01:0.00000001:-0.00101]
+    bifurc2 = [interior_equil(s, BacPhageSineForcedPar(r = 0.00001, b = 0.001, per=0.5, amp=0.4, mid=-0.002)) for s in -0.01:0.0001:-0.00101]
+    test = figure()
+    plot(-0.01:0.00000001:-0.00101, bifurc1, color="blue")
+    plot(-0.01:0.0001:-0.00101, bifurc2, color="red")
+    ylim(0,1)
+    xlim(-0.01,0.01)
+    return test
+end
+
+let 
+    srange = -0.01:0.00001:-0.00101
+    bifurc1 = [interior_equil(s, BacPhageSineForcedPar(r = 0.001, b = 0.001, per=0.5, amp=0.4, mid=-0.002)) for s in -0.01:0.00000001:-0.00101]
+    bifurc2 = [interior_equil(s, BacPhageSineForcedPar(r = 0.00001, b = 0.001, per=0.5, amp=0.4, mid=-0.002)) for s in -0.01:0.0001:-0.00101]
+    test = figure()
+    plot(-0.01:0.00000001:-0.00101, bifurc1, color="blue")
+    plot(-0.01:0.0001:-0.00101, bifurc2, color="red")
+    ylim(0,1)
+    xlim(-0.01,0.01)
+    return test
+end
+
+
+function trackingcor_CV_br(brange, rrange, freq, tsend)
+    data = zeros(length(brange)+1, length(rrange)+1)
+    u0=[0.5]
+    tspan=(0.0, tsend)
+    @threads for bi in eachindex(brange)
+        for ri in eachindex(rrange)
+        par = BacPhageSineForcedPar(b = brange[bi], r=rrange[ri], per=0.5, amp=0.4, mid=-0.002)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+        sol = solve(prob, RadauIIA5())
+        solseries = sol(tsend-1000.0:freq:tsend)
+        selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
+        seriesattractor = attractordata(selection, par)
+        CV = trackattractor_CV(solseries, seriesattractor)
+        data[bi+1,1] = brange[bi]
+        data[1,ri+1] = rrange[ri]
+        data[bi+1, ri+1] = CV[1]/CV[2]
+        end
+    end
+    return data
+end
+
+test = trackingcor_CV_br(0.00:0.001:0.003, 0.00001:0.001:0.003, 0.1, 10000)
+
+
+function splitting_trackingdata(trackingdata, r_rb)
+    if r_rb == "r"
+        return hcat(trackingdata[1,2:end],trackingdata[2,2:end])
+    elseif r_rb == "rb"
+        rbdata = zeros((size(trackingdata,1)-2)*(size(trackingdata,2)-1), 2)
+        for i in 3:size(trackingdata,1)
+            for j in 2:size(trackingdata, 2)
+                rbdata[i+j-4,1] = trackingdata[i,1]+trackingdata[1,j]
+                rbdata[i+j-4,2] = trackingdata[i,j]
+            end
+        end
+        return rbdata
+    else
+        error("r_rb should either be r or rb")
+    end
+end
+#need to fix overwriting data problem
+splitting_trackingdata(test, "r")
+splitting_trackingdata(test, "rb")
 
 #using range to think about tracking attractor
 function trackattractor_range(solutiondata, attractordata)
