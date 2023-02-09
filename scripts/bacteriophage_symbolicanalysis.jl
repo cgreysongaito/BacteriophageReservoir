@@ -3,16 +3,28 @@ include("bacteriophage_commoncode.jl")
 
 ## Symbolic analysis
 
-## With lysogeny without conjugation
-@vars s b
+# With conjugation without lysogeny
+@vars r s
 @vars C
-f(C) = s * C * ( 1 - C ) + b * ( 1 - C )
+f(C) = r * C * ( 1 - C ) + s * C * ( 1 - C )
 
 #Equilibria
 SymPy.solve(f(C), C)
 
 #Eigenvalue
 SymPy.simplify(diff(f(C),C))
+
+
+## With lysogeny without conjugation
+@vars s b
+@vars C
+g(C) = s * C * ( 1 - C ) + b * ( 1 - C )
+
+#Equilibria
+SymPy.solve(g(C), C)
+
+#Eigenvalue
+SymPy.simplify(diff(g(C),C))
 
 function bifurcwlwor_lin(s, p)
     @unpack b, r = p
@@ -38,13 +50,13 @@ end
 ##With lysogeny and conjugation
 @vars r s b
 @vars C
-g(C) = r * C * (1 - C) +  s * C * ( 1 - C ) + b * ( 1 - C )
+h(C) = r * C * (1 - C) +  s * C * ( 1 - C ) + b * ( 1 - C )
 
 #Equilibria
-SymPy.solve(g(C), C)
+SymPy.solve(h(C), C)
 
 #Eigenvalue
-SymPy.simplify(diff(g(C),C))
+SymPy.simplify(diff(h(C),C))
 SymPy.simplify(-2*r - 2 *s - b +r +s) #C=1
 SymPy.solve(SymPy.simplify(-2*r - 2 *s - b +r +s), s) #bifurcation point
 

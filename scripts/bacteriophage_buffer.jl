@@ -557,7 +557,7 @@ let
 end
 
 
-function trackingcor_CV_br(brange, rrange, freq, tsend)
+function braddition_tracking(brange, rrange, smid, freq, tsend)
     data = zeros(length(brange)+1, length(rrange)+1)
     u0=[0.5]
     tspan=(0.0, tsend)
@@ -578,28 +578,116 @@ function trackingcor_CV_br(brange, rrange, freq, tsend)
     return data
 end
 
-test = trackingcor_CV_br(0.00:0.001:0.003, 0.00001:0.001:0.003, 0.1, 10000)
 
+let 
+    u0=[0.5]
+    tsend = 10000.0
+    freq = 0.1
+    tspan=(0.0, tsend)
+    par = BacPhageSineForcedPar(b = 0.0, r=0.002, per=0.5, amp=0.4, mid=-0.002)
+    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+    sol = solve(prob, RadauIIA5())
+    solseries = sol(tsend-100.0:freq:tsend)
+    selection = [sel_sine(par, t) for t in tsend-100.0:freq:tsend]
+    seriesattractor = attractordata(selection, par)
+    test = figure()
+    plot(solseries.t, solseries.u)
+    plot(solseries.t, seriesattractor)
+    return test
+end
+
+test = braddition_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, -0.002, 0.1, 10000)
+setupbparam(test[2:end,1])
+
+function setupbparam(brange)
+    for bi in 1:length(brange)
+        @eval $(Symbol(:b, bi)) = $brange[$bi]
+    end
+end
+
+
+let 
+    data = braddition_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, -0.002, 0.1, 10000)
+    setupbparam(data[2:end,1])
+    bradditionfigure = figure()
+    plot(data[1,2:end],data[2,2:end], color="blue", label="b=$b1")
+    plot(data[1,2:end],data[3,2:end], color="red", label="b=$b2")
+    plot(data[1,2:end],data[4,2:end], color="orange", label="b=$b3")
+    plot(data[1,2:end],data[5,2:end], color="green", label="b=$b4")
+    legend()
+    return bradditionfigure
+end
+
+
+for i in 1:3
+    @eval $(Symbol(:b, i)) = $i
+    println(@eval $(Symbol(:b, i)))
+end
 
 function splitting_trackingdata(trackingdata, r_rb)
     if r_rb == "r"
         return hcat(trackingdata[1,2:end],trackingdata[2,2:end])
     elseif r_rb == "rb"
-        rbdata = zeros((size(trackingdata,1)-2)*(size(trackingdata,2)-1), 2)
-        for i in 3:size(trackingdata,1)
-            for j in 2:size(trackingdata, 2)
-                rbdata[i+j-4,1] = trackingdata[i,1]+trackingdata[1,j]
-                rbdata[i+j-4,2] = trackingdata[i,j]
-            end
+        # rbdata = zeros((size(trackingdata,1)-2)*(size(trackingdata,2)-1), 2)
+        bparam = repeat(trackingdata[3:end,1], inner=size(trackingdata,2)-1)
+        rparam = repeat(trackingdata[1,2:end], size(trackingdata,1)-2)
+        bplusr = zeros((size(trackingdata,1)-2)*(size(trackingdata,2)-1), 1)
+        for i in 1:length(bparam)
+            bplusr[i]= bparam[i]+rparam[i]
         end
-        return rbdata
+        trackingval = reshape(transpose(trackingdata[3:end,2:end]), ((size(trackingdata,1)-2)*(size(trackingdata,2)-1),1))
+        return hcat(bplusr, trackingval)
     else
         error("r_rb should either be r or rb")
     end
+end #change to spit out each line for r version of figure
+
+
+function brconstrained_tracking(rplusbrange, rbratio, smid, freq, tsend)
+    data = zeros(length(rplusbrange), 2)
+    u0=[0.5]
+    tspan=(0.0, tsend)
+    @threads for rbi in eachindex(rplusbrange)
+        if rbratio == Inf
+            rval = rplusbrange[rbi]
+            bval = 0.0
+        else
+            rval = rplusbrange[rbi]/(1+rbratio)
+            bval = rplusbrange[rbi] - rval
+        end
+        par = BacPhageSineForcedPar(b = bval, r=rval, per=0.5, amp=0.4, mid=smid)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+        sol = solve(prob, RadauIIA5())
+        solseries = sol(tsend-1000.0:freq:tsend)
+        selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
+        seriesattractor = attractordata(selection, par)
+        CV = trackattractor_CV(solseries, seriesattractor)
+        data[rbi, 1] = rplusbrange[rbi]
+        data[rbi, 2] = CV[1]/CV[2]
+    end
+    return data
 end
-#need to fix overwriting data problem
-splitting_trackingdata(test, "r")
-splitting_trackingdata(test, "rb")
+
+test = brconstrained(0.00001:0.0001:0.004, Inf, -0.002, 0.1, 10000.0)
+test[:,1]
+let 
+    datainf = brconstrained(0.00001:0.0001:0.004, Inf, -0.002, 0.1, 10000.0)
+    data05 = brconstrained(0.00001:0.0001:0.004, 0.5, -0.002, 0.1, 10000.0)
+    data1 = brconstrained(0.00001:0.0001:0.004, 0.01, -0.002, 0.1, 10000.0)
+    data2 = brconstrained(0.00001:0.0001:0.004, 0.02, -0.002, 0.1, 10000.0)
+    rplusbtrackingfigure = figure()
+    plot(datainf[:,1], datainf[:,2], color="blue", label="r/b=Inf")
+    plot(data05[:,1], data05[:,2], color="red", label="r/b=0.5")
+    plot(data1[:,1], data1[:,2], color="orange", label="r/b=1")
+    plot(data2[:,1], data2[:,2], color="green", label="r/b=2")
+    xlabel("b + r")
+    ylabel("CV(Solution)/CV(Attractor)")
+    legend()
+    return rplusbtrackingfigure
+end#something seems wrong
+
+
+
 
 #using range to think about tracking attractor
 function trackattractor_range(solutiondata, attractordata)

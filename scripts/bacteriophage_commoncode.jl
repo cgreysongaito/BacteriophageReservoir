@@ -56,7 +56,11 @@ end
 #Equilibrium and bifurcation functions
 function stableequil(s, par)
     @unpack b, r = par
-    if s > -b - r
+    if b == 0.0 && s > -r
+        return 1
+    elseif b == 0.0 && s < -r
+        return 0
+    elseif s > -b - r
         return 1
     else
         return -b / (r+s)
