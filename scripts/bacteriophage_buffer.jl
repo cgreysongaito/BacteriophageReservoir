@@ -71,6 +71,32 @@ end
 #May be able to get same intuition from the equations - but time series still useful
 
 
+#times series decomposition of conjugation, bacteriophage, selection
+let 
+    u0=[0.5]
+    tsend = 10000.0
+    freq = 0.1
+    tspan=(0.0, tsend)
+    par = BacPhageSineForcedPar(b = 0.001, r=0.001, per=0.5, amp=0.4, mid=-0.003)
+    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+    sol = solve(prob, RadauIIA5())
+    solseries = sol(tsend-100.0:freq:tsend)
+    conjworkdata = [conjugation(C, par.r) for C in solseries[1, :]]
+    lysoworkdata = [lysogeny(C, par.b) for C in solseries[1,:]]
+    selectiondata = [sel_sine(par, t) for t in tsend-100.0:freq:tsend]
+    selecworkdata = [selection(C, s) for (C,s) in zip(solseries[1,:],selectiondata)]
+    # seriesattractor = attractordata(selection, par)
+    test = figure()
+    plot(solseries.t, conjworkdata, color="blue", label="Conjugation")
+    plot(solseries.t, lysoworkdata, color="red", label="Bacteriophage")
+    # plot(solseries.t, selecworkdata, color="green", label="Selection")
+    # # plot(solseries.t, seriesattractor)
+    return test
+end
+
+#definitely selection does most of the movement work! but the balance for sure dictates the actual dynamics
+#anyway to proove the order of "work" of selection, then bacteriophage, then conjugation
+
 let 
     u0 = [0.5]
     tend = 5000.0
@@ -342,6 +368,33 @@ function bifurcmid(midrange, tsend)
     return data
 end
 
+#test of bifurcmid with different periodicity (because model without bac is dependent on periodicity) - ANSWER - periodicity does not affect "bifurcation" point
+function bifurcmid_per(midrange, perval, tsend)
+    data = zeros(length(midrange), 3)
+    u0=[0.5]
+    tspan=(0.0, tsend)
+    @threads for midi in eachindex(midrange)
+        par = BacPhageSineForcedPar(b = 0.001, per=perval, amp=0.4, mid=midrange[midi])
+        par.mid = midrange[midi]
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+        sol = solve(prob, RadauIIA5())
+        solseries = sol(tsend-1000:1.0:tsend)
+        data[midi, 1] = midrange[midi]
+        data[midi, 2] = maximum(solseries)
+        data[midi, 3] = minimum(solseries)
+    end
+    return data
+end
+
+let 
+    midrange = -0.01:0.0001:0.001
+    bifurcmid_data = bifurcmid_per(midrange, 0.2, 100000.0)
+    test = figure()
+    plot(bifurcmid_data[:, 1], bifurcmid_data[:, 2], color="black")
+    plot(bifurcmid_data[:, 1], bifurcmid_data[:, 3], color="black")
+    return test
+end
+
 #eigen integral bifurcation #C=1 #mid
 function bifurcintegral_eigen1_mid(midrange, tsend)
     data = zeros(length(midrange), 3)
@@ -563,7 +616,7 @@ function braddition_tracking(brange, rrange, smid, freq, tsend)
     tspan=(0.0, tsend)
     @threads for bi in eachindex(brange)
         for ri in eachindex(rrange)
-        par = BacPhageSineForcedPar(b = brange[bi], r=rrange[ri], per=0.5, amp=0.4, mid=-0.002)
+        par = BacPhageSineForcedPar(b = brange[bi], r=rrange[ri], per=0.5, amp=0.4, mid=smid)
         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
         sol = solve(prob, RadauIIA5())
         solseries = sol(tsend-1000.0:freq:tsend)
@@ -578,14 +631,48 @@ function braddition_tracking(brange, rrange, smid, freq, tsend)
     return data
 end
 
+function braddition_sbifurcset_tracking(brange, rrange, freq, tsend)
+    data = zeros(length(brange)+1, length(rrange)+1)
+    u0=[0.5]
+    tspan=(0.0, tsend)
+    @threads for bi in eachindex(brange)
+        for ri in eachindex(rrange)
+        if brange[bi]==0.0
+            smid = -0.002
+        else
+            smid = -0.002 - brange[bi]
+        end
+        par = BacPhageSineForcedPar(b = brange[bi], r=rrange[ri], per=0.5, amp=0.4, mid=smid)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+        sol = solve(prob, RadauIIA5())
+        solseries = sol(tsend-1000.0:freq:tsend)
+        selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
+        seriesattractor = attractordata(selection, par)
+        CV = trackattractor_CV(solseries, seriesattractor)
+        data[bi+1,1] = brange[bi]
+        data[1,ri+1] = rrange[ri]
+        data[bi+1, ri+1] = CV[1]/CV[2]
+        end
+    end
+    return data
+end
+# code in that s is set at the bifurcation point
+
+
+# function bacphager_sine_forced!(du, u, p, t,)
+#     @unpack r, per, amp = p
+#     s = p.selec(p,t)
+#     du[1] = r * u[1] * (1 - u[1]) + (s * u[1] * ( 1 - u[1] )) 
+#     return
+# end
 
 let 
     u0=[0.5]
     tsend = 10000.0
     freq = 0.1
     tspan=(0.0, tsend)
-    par = BacPhageSineForcedPar(b = 0.0, r=0.002, per=0.5, amp=0.4, mid=-0.002)
-    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+    par = BacPhageSineForcedPar(b = 0.0, r=0.005, per=0.1, amp=0.4, mid=-0.004)
+    prob = ODEProblem(bacphager_sine_forced!, u0, tspan, par)
     sol = solve(prob, RadauIIA5())
     solseries = sol(tsend-100.0:freq:tsend)
     selection = [sel_sine(par, t) for t in tsend-100.0:freq:tsend]
@@ -607,7 +694,7 @@ end
 
 
 let 
-    data = braddition_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, -0.002, 0.1, 10000)
+    data = braddition_sbifurcset_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, 0.1, 10000)
     setupbparam(data[2:end,1])
     bradditionfigure = figure()
     plot(data[1,2:end],data[2,2:end], color="blue", label="b=$b1")
@@ -619,9 +706,16 @@ let
 end
 
 
-for i in 1:3
-    @eval $(Symbol(:b, i)) = $i
-    println(@eval $(Symbol(:b, i)))
+let 
+    data = braddition_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, -0.002, 0.1, 10000)
+    setupbparam(data[2:end,1])
+    bradditionfigure = figure()
+    plot(data[1,2:end],data[2,2:end], color="blue", label="b=$b1")
+    plot(data[1,2:end],data[3,2:end], color="red", label="b=$b2")
+    plot(data[1,2:end],data[4,2:end], color="orange", label="b=$b3")
+    plot(data[1,2:end],data[5,2:end], color="green", label="b=$b4")
+    legend()
+    return bradditionfigure
 end
 
 function splitting_trackingdata(trackingdata, r_rb)
@@ -652,7 +746,7 @@ function brconstrained_tracking(rplusbrange, rbratio, smid, freq, tsend)
             rval = rplusbrange[rbi]
             bval = 0.0
         else
-            rval = rplusbrange[rbi]/(1+rbratio)
+            rval = rplusbrange[rbi]/(1+(1/rbratio))
             bval = rplusbrange[rbi] - rval
         end
         par = BacPhageSineForcedPar(b = bval, r=rval, per=0.5, amp=0.4, mid=smid)
@@ -668,23 +762,21 @@ function brconstrained_tracking(rplusbrange, rbratio, smid, freq, tsend)
     return data
 end
 
-test = brconstrained(0.00001:0.0001:0.004, Inf, -0.002, 0.1, 10000.0)
-test[:,1]
 let 
-    datainf = brconstrained(0.00001:0.0001:0.004, Inf, -0.002, 0.1, 10000.0)
-    data05 = brconstrained(0.00001:0.0001:0.004, 0.5, -0.002, 0.1, 10000.0)
-    data1 = brconstrained(0.00001:0.0001:0.004, 0.01, -0.002, 0.1, 10000.0)
-    data2 = brconstrained(0.00001:0.0001:0.004, 0.02, -0.002, 0.1, 10000.0)
+    datainf = brconstrained_tracking(0.00001:0.0001:0.004, Inf, -0.002, 0.1, 10000.0)
+    data05 = brconstrained_tracking(0.00001:0.0001:0.004, 0.01, -0.002, 0.1, 10000.0)
+    data1 = brconstrained_tracking(0.00001:0.0001:0.004, 1, -0.002, 0.1, 10000.0)
+    data2 = brconstrained_tracking(0.00001:0.0001:0.004, 3, -0.002, 0.1, 10000.0)
     rplusbtrackingfigure = figure()
-    plot(datainf[:,1], datainf[:,2], color="blue", label="r/b=Inf")
-    plot(data05[:,1], data05[:,2], color="red", label="r/b=0.5")
+    plot(data05[:,1], data05[:,2], color="red", label="r/b=0.01")
     plot(data1[:,1], data1[:,2], color="orange", label="r/b=1")
-    plot(data2[:,1], data2[:,2], color="green", label="r/b=2")
+    plot(data2[:,1], data2[:,2], color="green", label="r/b=3")
+    plot(datainf[:,1], datainf[:,2], color="blue", label="r/b=Inf")
     xlabel("b + r")
     ylabel("CV(Solution)/CV(Attractor)")
     legend()
     return rplusbtrackingfigure
-end#something seems wrong
+end
 
 
 
