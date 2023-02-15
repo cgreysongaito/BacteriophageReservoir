@@ -252,6 +252,8 @@ let
     plot(data[1,2:end],data[3,2:end], color="red", label="b=$b2")
     plot(data[1,2:end],data[4,2:end], color="orange", label="b=$b3")
     plot(data[1,2:end],data[5,2:end], color="green", label="b=$b4")
+    ylabel("CV(Solution)/CV(Attractor)")
+    xlabel("r")
     legend()
     # return braddition_sbifurcsetfigure
     savefig(joinpath(abpath(), "figs/braddition_sbifurcsetfigure.pdf"))
@@ -266,6 +268,8 @@ let
     plot(data[1,2:end],data[3,2:end], color="red", label="b=$b2")
     plot(data[1,2:end],data[4,2:end], color="orange", label="b=$b3")
     plot(data[1,2:end],data[5,2:end], color="green", label="b=$b4")
+    ylabel("CV(Solution)/CV(Attractor)")
+    xlabel("r")
     legend()
     # return bradditionfigure
     savefig(joinpath(abpath(), "figs/bradditionfigure.pdf"))
