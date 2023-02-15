@@ -656,35 +656,26 @@ function braddition_sbifurcset_tracking(brange, rrange, freq, tsend)
     end
     return data
 end
-# code in that s is set at the bifurcation point
 
-
-# function bacphager_sine_forced!(du, u, p, t,)
-#     @unpack r, per, amp = p
-#     s = p.selec(p,t)
-#     du[1] = r * u[1] * (1 - u[1]) + (s * u[1] * ( 1 - u[1] )) 
-#     return
+# let 
+#     u0=[0.5]
+#     tsend = 10000.0
+#     freq = 0.1
+#     tspan=(0.0, tsend)
+#     par = BacPhageSineForcedPar(b = 0.0, r=0.005, per=0.1, amp=0.4, mid=-0.004)
+#     prob = ODEProblem(bacphager_sine_forced!, u0, tspan, par)
+#     sol = solve(prob, RadauIIA5())
+#     solseries = sol(tsend-100.0:freq:tsend)
+#     selection = [sel_sine(par, t) for t in tsend-100.0:freq:tsend]
+#     seriesattractor = attractordata(selection, par)
+#     test = figure()
+#     plot(solseries.t, solseries.u)
+#     plot(solseries.t, seriesattractor)
+#     return test
 # end
 
-let 
-    u0=[0.5]
-    tsend = 10000.0
-    freq = 0.1
-    tspan=(0.0, tsend)
-    par = BacPhageSineForcedPar(b = 0.0, r=0.005, per=0.1, amp=0.4, mid=-0.004)
-    prob = ODEProblem(bacphager_sine_forced!, u0, tspan, par)
-    sol = solve(prob, RadauIIA5())
-    solseries = sol(tsend-100.0:freq:tsend)
-    selection = [sel_sine(par, t) for t in tsend-100.0:freq:tsend]
-    seriesattractor = attractordata(selection, par)
-    test = figure()
-    plot(solseries.t, solseries.u)
-    plot(solseries.t, seriesattractor)
-    return test
-end
-
-test = braddition_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, -0.002, 0.1, 10000)
-setupbparam(test[2:end,1])
+# test = braddition_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, -0.002, 0.1, 10000)
+# setupbparam(test[2:end,1])
 
 function setupbparam(brange)
     for bi in 1:length(brange)
@@ -781,37 +772,37 @@ end
 
 
 
-#using range to think about tracking attractor
-function trackattractor_range(solutiondata, attractordata)
-    solutionrange = maximum(solutiondata) - minimum(solutiondata)
-    attractorrange = maximum(attractordata) - minimum(attractordata)
-    return [solutionrange, attractorrange]
-end
+# #using range to think about tracking attractor
+# function trackattractor_range(solutiondata, attractordata)
+#     solutionrange = maximum(solutiondata) - minimum(solutiondata)
+#     attractorrange = maximum(attractordata) - minimum(attractordata)
+#     return [solutionrange, attractorrange]
+# end
 
-function trackingcor_range_b(brange, freq, tsend)
-    data = zeros(length(brange), 4)
-    u0=[0.5]
-    tspan=(0.0, tsend)
-    @threads for bi in eachindex(brange)
-        par = BacPhageSineForcedPar(b = brange[bi], per=0.5, amp=0.4, mid=-0.002)
-        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, RadauIIA5())
-        solseries = sol(tsend-1000.0:freq:tsend)
-        selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
-        seriesattractor = attractordata(selection, par)
-        range = trackattractor_range(solseries, seriesattractor)
-        data[bi, 1] = brange[bi]
-        data[bi, 2] = range[1]
-        data[bi, 3] = range[2]
-        data[bi, 4] = range[1]/range[2]
-    end
-    return data
-end
+# function trackingcor_range_b(brange, freq, tsend)
+#     data = zeros(length(brange), 4)
+#     u0=[0.5]
+#     tspan=(0.0, tsend)
+#     @threads for bi in eachindex(brange)
+#         par = BacPhageSineForcedPar(b = brange[bi], per=0.5, amp=0.4, mid=-0.002)
+#         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+#         sol = solve(prob, RadauIIA5())
+#         solseries = sol(tsend-1000.0:freq:tsend)
+#         selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
+#         seriesattractor = attractordata(selection, par)
+#         range = trackattractor_range(solseries, seriesattractor)
+#         data[bi, 1] = brange[bi]
+#         data[bi, 2] = range[1]
+#         data[bi, 3] = range[2]
+#         data[bi, 4] = range[1]/range[2]
+#     end
+#     return data
+# end
 
-let 
-    data = trackingcor_range_b(0.0001:0.0001:0.003, 0.1, 10000.0)
-    test = figure()
-    plot(data[:,1], data[:,4], color="blue")
-    # plot(data[:,1], data[:,3], color="red")
-    return test
-end
+# let 
+#     data = trackingcor_range_b(0.0001:0.0001:0.003, 0.1, 10000.0)
+#     test = figure()
+#     plot(data[:,1], data[:,4], color="blue")
+#     # plot(data[:,1], data[:,3], color="red")
+#     return test
+# end

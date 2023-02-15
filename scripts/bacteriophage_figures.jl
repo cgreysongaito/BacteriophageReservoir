@@ -4,6 +4,38 @@ include("bacteriophage_buffer.jl")
 include("bacteriophage_stochastic.jl")
 
 
+#Figure - Decomposition of conjugation, bacteriophage, and selection "work"
+let 
+    u0=[0.5]
+    tsend = 10000.0
+    freq = 0.1
+    tspan=(0.0, tsend)
+    par = BacPhageSineForcedPar(b = 0.001, r=0.001, per=0.5, amp=0.4, mid=-0.002)
+    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+    sol = solve(prob, RadauIIA5())
+    solseries = sol(tsend-100.0:freq:tsend)
+    conjworkdata = [conjugation(C, par.r) for C in solseries[1, :]]
+    lysoworkdata = [lysogeny(C, par.b) for C in solseries[1,:]]
+    selectiondata = [sel_sine(par, t) for t in tsend-100.0:freq:tsend]
+    selecworkdata = [selection(C, s) for (C,s) in zip(solseries[1,:],selectiondata)]
+    workdecompositionfigure = figure()
+    subplot(2,1,1)
+    plot(solseries.t, lysoworkdata, color="red", label="Bacteriophage")
+    plot(solseries.t, conjworkdata, color="blue", label="Conjugation")
+    ylabel("Work (d/dt)")
+    xlabel("Time")
+    legend()
+    subplot(2,1,2)
+    plot(solseries.t, selecworkdata, color="green", label="Selection")
+    ylabel("Work (d/dt)")
+    xlabel("Time")
+    legend()
+    tight_layout()
+    # return workdecompositionfigure
+    savefig(joinpath(abpath(), "figs/workdecompositionfigure.pdf"))
+end
+
+
 #Figure - HGT and selection work
 let 
     par = BacPhagePar(s = -0.002)
@@ -37,6 +69,46 @@ let
     # return delayfigure
     savefig(joinpath(abpath(), "figs/delay_selectionswitch.png"))
 end
+
+#Figure - showing the different patterns of model
+let 
+    u0=[0.5]
+    tsend = 10000.0
+    freq = 0.1
+    tspan=(0.0, tsend)
+    par1 = BacPhageSineForcedPar(b = 0.001, r=0.001, per=0.5, amp=0.4, mid=-0.03)
+    prob1 = ODEProblem(bacphage_sine_forced!, u0, tspan, par1)
+    sol1 = solve(prob1, RadauIIA5())
+    solseries1 = sol1(tsend-100.0:freq:tsend)
+    par2 = BacPhageSineForcedPar(b = 0.001, r=0.001, per=0.5, amp=0.4, mid=-0.003)
+    prob2 = ODEProblem(bacphage_sine_forced!, u0, tspan, par2)
+    sol2 = solve(prob2, RadauIIA5())
+    solseries2 = sol2(tsend-100.0:freq:tsend)
+    par3 = BacPhageSineForcedPar(b = 0.001, r=0.001, per=0.5, amp=0.4, mid=-0.001)
+    prob3 = ODEProblem(bacphage_sine_forced!, u0, tspan, par3)
+    sol3 = solve(prob3, RadauIIA5())
+    solseries3 = sol3(tsend-100.0:freq:tsend)
+    patternsfigure = figure()
+    subplot(3,1,1)
+    plot(solseries1.t, solseries1.u, color="black")
+    ylabel("C")
+    xlabel("Time")
+    ylim(0.0,1.1)
+    subplot(3,1,2)
+    plot(solseries2.t, solseries2.u, color="black")
+    ylabel("C")
+    xlabel("Time")
+    ylim(0.0,1.1)
+    subplot(3,1,3)
+    plot(solseries3.t, solseries3.u, color="black")
+    ylabel("C")
+    xlabel("Time")
+    ylim(0.0,1.1)
+    tight_layout()
+    # return patternsfigure
+    savefig(joinpath(abpath(), "figs/patternsfigure.pdf"))
+end
+
 
 #Figure
 
@@ -151,4 +223,50 @@ let
     xlabel("bacteriophage (b)")
     # return stability_b
     savefig(joinpath(abpath(), "figs/bacteriophage_stability.pdf"))
+end
+
+
+let 
+    datainf = brconstrained_tracking(0.00001:0.0001:0.004, Inf, -0.002, 0.1, 10000.0)
+    data05 = brconstrained_tracking(0.00001:0.0001:0.004, 0.01, -0.002, 0.1, 10000.0)
+    data1 = brconstrained_tracking(0.00001:0.0001:0.004, 1, -0.002, 0.1, 10000.0)
+    data2 = brconstrained_tracking(0.00001:0.0001:0.004, 3, -0.002, 0.1, 10000.0)
+    rplusbconstrainedtrackingfigure = figure()
+    plot(data05[:,1], data05[:,2], color="red", label="r/b=0.01")
+    plot(data1[:,1], data1[:,2], color="orange", label="r/b=1")
+    plot(data2[:,1], data2[:,2], color="green", label="r/b=3")
+    plot(datainf[:,1], datainf[:,2], color="blue", label="r/b=Inf")
+    xlabel("b + r")
+    ylabel("CV(Solution)/CV(Attractor)")
+    legend()
+    # return rplusbconstrainedtrackingfigure
+    savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
+end
+
+
+let 
+    data = braddition_sbifurcset_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, 0.1, 10000)
+    setupbparam(data[2:end,1])
+    braddition_sbifurcsetfigure = figure()
+    plot(data[1,2:end],data[2,2:end], color="blue", label="b=$b1")
+    plot(data[1,2:end],data[3,2:end], color="red", label="b=$b2")
+    plot(data[1,2:end],data[4,2:end], color="orange", label="b=$b3")
+    plot(data[1,2:end],data[5,2:end], color="green", label="b=$b4")
+    legend()
+    # return braddition_sbifurcsetfigure
+    savefig(joinpath(abpath(), "figs/braddition_sbifurcsetfigure.pdf"))
+end
+
+
+let 
+    data = braddition_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, -0.002, 0.1, 10000)
+    setupbparam(data[2:end,1])
+    bradditionfigure = figure()
+    plot(data[1,2:end],data[2,2:end], color="blue", label="b=$b1")
+    plot(data[1,2:end],data[3,2:end], color="red", label="b=$b2")
+    plot(data[1,2:end],data[4,2:end], color="orange", label="b=$b3")
+    plot(data[1,2:end],data[5,2:end], color="green", label="b=$b4")
+    legend()
+    # return bradditionfigure
+    savefig(joinpath(abpath(), "figs/bradditionfigure.pdf"))
 end
