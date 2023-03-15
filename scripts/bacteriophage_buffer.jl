@@ -465,6 +465,12 @@ function trackattractor_CV(solutiondata, attractordata)
     return [solutionCV, attractorCV]
 end
 
+function trackattractor_INT(solutiondata, attractordata)
+    solutionINT = sum(solutiondata)
+    attractorINT = sum(attractordata)
+    return [solutionINT, attractorINT] 
+end
+
 function trackingcor_CV_b(brange, rval, freq, tsend)
     data = zeros(length(brange), 4)
     u0=[0.5]
@@ -484,6 +490,26 @@ function trackingcor_CV_b(brange, rval, freq, tsend)
     end
     return data
 end
+
+function trackingcor_INT_b(brange, rval, freq, tsend)
+    data = zeros(length(brange), 4)
+    u0=[0.5]
+    tspan=(0.0, tsend)
+    @threads for bi in eachindex(brange)
+        par = BacPhageSineForcedPar(b = brange[bi], r=rval, per=0.5, amp=0.4, mid=-0.002)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+        sol = solve(prob, RadauIIA5())
+        solseries = sol(tsend-1000.0:freq:tsend)
+        selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
+        seriesattractor = attractordata(selection, par)
+        INT = trackattractor_INT(solseries, seriesattractor)
+        data[bi, 1] = brange[bi]
+        data[bi, 2] = INT[1]
+        data[bi, 3] = INT[2]
+        data[bi, 4] = INT[1]/INT[2]
+    end
+    return data
+end #"Integral" doesn't show trade off particularly well
 
 let 
     data_lowr = trackingcor_CV_b(0.00001:0.00001:0.003, 0.0, 0.1, 10000.0)
@@ -506,6 +532,29 @@ let
     return stability_b
     # savefig(joinpath(abpath(), "figs/conjugation_stability.pdf"))
 end
+
+let 
+    data_lowr = trackingcor_INT_b(0.00001:0.00001:0.003, 0.0, 0.1, 10000.0)
+    data_medr = trackingcor_INT_b(0.00001:0.00001:0.003, 0.0005, 0.1, 10000.0)
+    data_highr = trackingcor_INT_b(0.00001:0.00001:0.003, 0.001, 0.1, 10000.0)
+    stability_b = figure()
+    subplot(1,3,1)
+    plot(data_lowr[:,1], data_lowr[:,4], color="blue")
+    ylabel("Int(Solution)/Int(Attractor)")
+    xlabel("bacteriophage (b)")
+    subplot(1,3,2)
+    plot(data_medr[:,1], data_medr[:,4], color="blue")
+    ylabel("Int(Solution)/Int(Attractor)")
+    xlabel("bacteriophage (b)")
+    subplot(1,3,3)
+    plot(data_highr[:,1], data_highr[:,4], color="blue")
+    ylabel("Int(Solution)/Int(Attractor)")
+    xlabel("bacteriophage (b)")
+    tight_layout()
+    return stability_b
+    # savefig(joinpath(abpath(), "figs/conjugation_stability.pdf"))
+end
+
 
 function trackingcor_CV_r(rrange, bval, freq, tsend)
     data = zeros(length(rrange), 4)
