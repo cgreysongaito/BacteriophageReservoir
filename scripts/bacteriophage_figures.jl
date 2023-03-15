@@ -215,11 +215,11 @@ end
 
 #Final figure (stability)
 let 
-    data = trackingcor_CV_b(0.0001:0.0001:0.003, 0.1, 10000.0)
+    data = trackingcor_INT_b(0.0001:0.0001:0.002, 0.001, 0.1, 10000.0)
     stability_b = figure()
-    plot(data[:,1], data[:,4], color="blue")
+    plot(data[:,1], data[:,2], color="blue")
     # plot(data[:,1], data[:,3], color="red")
-    ylabel("CV(Solution)/CV(Attractor)")
+    ylabel("Log 10 absolute difference \nbetween solution and equilibrium")
     xlabel("bacteriophage (b)")
     # return stability_b
     savefig(joinpath(abpath(), "figs/bacteriophage_stability.pdf"))
@@ -227,7 +227,7 @@ end
 
 
 let 
-    datainf = brconstrained_tracking(0.00001:0.0001:0.004, Inf, -0.002, 0.1, 10000.0)
+    # datainf = brconstrained_tracking(0.00001:0.0001:0.004, Inf, -0.002, 0.1, 10000.0)
     data05 = brconstrained_tracking(0.00001:0.0001:0.004, 0.01, -0.002, 0.1, 10000.0)
     data1 = brconstrained_tracking(0.00001:0.0001:0.004, 1, -0.002, 0.1, 10000.0)
     data2 = brconstrained_tracking(0.00001:0.0001:0.004, 3, -0.002, 0.1, 10000.0)
@@ -235,9 +235,9 @@ let
     plot(data05[:,1], data05[:,2], color="red", label="r/b=0.01")
     plot(data1[:,1], data1[:,2], color="orange", label="r/b=1")
     plot(data2[:,1], data2[:,2], color="green", label="r/b=3")
-    plot(datainf[:,1], datainf[:,2], color="blue", label="r/b=Inf")
+    # plot(datainf[:,1], datainf[:,2], color="blue", label="r/b=Inf")
     xlabel("b + r")
-    ylabel("CV(Solution)/CV(Attractor)")
+    ylabel("Log 10 absolute difference \nbetween solution and equilibrium")
     legend()
     # return rplusbconstrainedtrackingfigure
     savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
@@ -245,14 +245,29 @@ end
 
 
 let 
-    data = braddition_sbifurcset_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, 0.1, 10000)
+    data = braddition_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, -0.002, 0.1, 10000)
     setupbparam(data[2:end,1])
-    braddition_sbifurcsetfigure = figure()
-    plot(data[1,2:end],data[2,2:end], color="blue", label="b=$b1")
+    bradditionfigure = figure()
+    # plot(data[1,2:end],data[2,2:end], color="blue", label="b=$b1")
     plot(data[1,2:end],data[3,2:end], color="red", label="b=$b2")
     plot(data[1,2:end],data[4,2:end], color="orange", label="b=$b3")
     plot(data[1,2:end],data[5,2:end], color="green", label="b=$b4")
-    ylabel("CV(Solution)/CV(Attractor)")
+    ylabel("Log 10 absolute difference \nbetween solution and equilibrium")
+    xlabel("r")
+    legend()
+    # return bradditionfigure
+    savefig(joinpath(abpath(), "figs/bradditionfigure.pdf"))
+end
+
+let 
+    data = braddition_sbifurcset_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, 0.1, 10000)
+    setupbparam(data[2:end,1])
+    braddition_sbifurcsetfigure = figure()
+    # plot(data[1,2:end],data[2,2:end], color="blue", label="b=$b1")
+    plot(data[1,2:end],data[3,2:end], color="red", label="b=$b2")
+    plot(data[1,2:end],data[4,2:end], color="orange", label="b=$b3")
+    plot(data[1,2:end],data[5,2:end], color="green", label="b=$b4")
+    ylabel("Log 10 absolute difference \nbetween solution and equilibrium")
     xlabel("r")
     legend()
     # return braddition_sbifurcsetfigure
@@ -260,17 +275,3 @@ let
 end
 
 
-let 
-    data = braddition_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, -0.002, 0.1, 10000)
-    setupbparam(data[2:end,1])
-    bradditionfigure = figure()
-    plot(data[1,2:end],data[2,2:end], color="blue", label="b=$b1")
-    plot(data[1,2:end],data[3,2:end], color="red", label="b=$b2")
-    plot(data[1,2:end],data[4,2:end], color="orange", label="b=$b3")
-    plot(data[1,2:end],data[5,2:end], color="green", label="b=$b4")
-    ylabel("CV(Solution)/CV(Attractor)")
-    xlabel("r")
-    legend()
-    # return bradditionfigure
-    savefig(joinpath(abpath(), "figs/bradditionfigure.pdf"))
-end
