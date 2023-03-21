@@ -16,19 +16,16 @@ function bacphage!(du, u, p, t,)
     return
 end
 
-function selection_switch_bacphage(b, oldsel, newsel, tvals)
-    par = BacPhagePar(b = b, s = oldsel)
-    u0 = [stableequil(oldsel, par)]
-    tspan=(0.0, 900.0)
-
-    condition(u,t,integrator) = t > 50.0 
-    function changesel!(integrator)
-        integrator.p.s=newsel
+function selection_switch_bacphage(bval, oldsel, newsel, tvals)
+    par = BacPhagePar(b = bval, s = newsel)
+    if oldsel > bifurc(par)
+        u0 = [0.9999]
+    else
+        u0 = [stableequil(oldsel, par)]
     end
-
-    cb = DiscreteCallback(condition, changesel!)
+    tspan=(0.0, maximum(tvals))
     prob = ODEProblem(bacphage!, u0, tspan, par)
-    sol = solve(prob,RadauIIA5(), callback=cb)
+    sol = solve(prob,RadauIIA5())
     solseries = sol(tvals)
     return solseries
 end
