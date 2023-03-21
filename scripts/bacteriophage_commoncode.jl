@@ -16,8 +16,8 @@ function bacphage!(du, u, p, t,)
     return
 end
 
-function selection_switch_bacphage(bval, oldsel, newsel, tvals)
-    par = BacPhagePar(b = bval, s = newsel)
+function selection_switch_bacphage(bval, rval, oldsel, newsel, tvals)
+    par = BacPhagePar(b = bval, r=rval, s = newsel)
     if oldsel > bifurc(par)
         u0 = [0.9999]
     else
