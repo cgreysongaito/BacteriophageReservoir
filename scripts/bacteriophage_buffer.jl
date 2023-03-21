@@ -245,20 +245,35 @@ dHGTdt(0.449999, dcdt(0.4499999, BacPhagePar(s = 0.01)), BacPhagePar(s = 0.01))
 
 #time taken to reach gene fixation after switch in selection for different values of b
 
-function calc_time_fixation(b, oldsel, newsel, tvals)
-    solseries = selection_switch_bacphage(b, oldsel, newsel, tvals)
+function calc_time_fixation(bval, oldsel, newsel, tvals)
+    solseries = selection_switch_bacphage(bval, oldsel, newsel, tvals)
+    newequil = stableequil(newsel, BacPhagePar(b=bval))
     time = []
     for ti in eachindex(solseries.t)
-        if isapprox(solseries.u[ti][1], 1.0, atol=0.1)
-            time = solseries.t[ti]-50.0
+        if isapprox(solseries.u[ti][1], newequil, atol=0.1)
+            time = solseries.t[ti]
             break
         end
     end
     return time
 end
 
+
 let 
-    data = selection_switch_bacphage(0.0001, -0.05, 0.01, 0.0:1.0:10000.0)
+    par = BacPhagePar(b = 0.01, s = -0.05)
+    u0 = [0.9999]
+    # u0 = [stableequil(oldsel, par)-0.000001]
+    tspan=(0.0, 10000.0)
+    prob = ODEProblem(bacphage!, u0, tspan, par)
+    sol = solve(prob,RadauIIA5())
+    solseries = sol(0.0:1.0:1000.0)
+    test = figure()
+    plot(solseries.t, solseries.u)
+    return test
+end
+
+let 
+    data = selection_switch_bacphage(0.0001, -0.05, 0.01, 0.0:1.0:1000.0)
     test = figure()
     plot(data.t, data.u)
     return test

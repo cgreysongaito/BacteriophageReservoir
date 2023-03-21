@@ -59,13 +59,21 @@ let
 end
 
 
+data_decrease = time_fixation_b(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
+data_increase = time_fixation_b(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
+
 #Figure
 let 
-    data = time_fixation_b(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
+    data_increase = time_fixation_b(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
+    data_decrease = time_fixation_b(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
     delayfigure = figure()
-    plot(data[1], data[2])
-    xlabel("b")
-    ylabel("Time")
+    plot(data_increase[1], data_increase[2], color="blue", label="Positive")
+    plot(data_decrease[1], data_decrease[2], color="red", label="Negative")
+    xticks(fontsize=12)
+    yticks(fontsize=12)
+    xlabel("Bacteriophage level (b)", fontsize = 15)
+    ylabel("Return Time", fontsize = 15)
+    legend(title = "Selection Switch", title_fontsize = 15, fontsize = 12)
     # return delayfigure
     savefig(joinpath(abpath(), "figs/delay_selectionswitch.png"))
 end
