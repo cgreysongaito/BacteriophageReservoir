@@ -258,27 +258,6 @@ function calc_time_fixation(bval, rval, oldsel, newsel, tvals)
     return time
 end
 
-
-let 
-    par = BacPhagePar(b = 0.01, s = -0.05)
-    u0 = [0.9999]
-    # u0 = [stableequil(oldsel, par)-0.000001]
-    tspan=(0.0, 10000.0)
-    prob = ODEProblem(bacphage!, u0, tspan, par)
-    sol = solve(prob,RadauIIA5())
-    solseries = sol(0.0:1.0:1000.0)
-    test = figure()
-    plot(solseries.t, solseries.u)
-    return test
-end
-
-let 
-    data = selection_switch_bacphage(0.0001, -0.05, 0.01, 0.0:1.0:1000.0)
-    test = figure()
-    plot(data.t, data.u)
-    return test
-end
-
 function time_fixation_b(brange, oldsel, newsel, tvals)
     timedata=zeros(length(brange))
     @threads for bi in eachindex(brange)
@@ -293,16 +272,6 @@ function time_fixation_r(rrange, oldsel, newsel, tvals)
         timedata[ri] = calc_time_fixation(0.001, rrange[ri], oldsel, newsel, tvals)
     end
     return [rrange, timedata]
-end
-
-let 
-    data = time_fixation_b(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
-    delayfigure = figure()
-    plot(data[1], data[2])
-    xlabel("b")
-    ylabel("Time")
-    # return delayfigure
-    savefig(joinpath(abpath(), "figs/delay_selectionswitch.png"))
 end
 
 ## PROOF 2 BUT INCREASING BACTERIOPHAGE REDUCES THE DELAY BETWEEN EQUILIBRIUM AND SYSTEM STATE. ALSO REDUCED CV
@@ -436,43 +405,6 @@ function bifurcintegral_eigen1_mid(midrange, tsend)
 end
 
 
-#"bifurcations" changing b (keeping in case need to show b and r do the same thing as changing mid)
-function bifurcb(brange)
-    par = BacPhageSineForcedPar(r = 0.001, per=0.5, amp=0.4, mid=-0.01)
-    maxC = zeros(length(brange))
-    minC = zeros(length(brange))
-    u0=[0.5]
-    tspan=(0.0, 10000.0)
-    for bi in eachindex(brange)
-        par.b = brange[bi]
-        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, RadauIIA5())
-        solseries = sol(9000.0:1.0:10000.0)
-        maxC[bi] = maximum(solseries)
-        minC[bi] = minimum(solseries)
-    end
-    return [maxC, minC]
-end
-
-#"bifurcations" changing r (keeping in case need to show b and r do the same thing as changing mid)
-function bifurcr(rrange)
-    par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=-0.01)
-    maxC = zeros(length(rrange))
-    minC = zeros(length(rrange))
-    u0=[0.5]
-    tspan=(0.0, 10000.0)
-    for ri in eachindex(rrange)
-        par.r = rrange[ri]
-        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, RadauIIA5())
-        solseries = sol(9000.0:1.0:10000.0)
-        maxC[ri] = maximum(solseries)
-        minC[ri] = minimum(solseries)
-    end
-    return [maxC, minC]
-end
-
-
 function attractordata(selectiondata, par)
     attractor = zeros(length(selectiondata))
     for i in 1:length(selectiondata)
@@ -531,8 +463,6 @@ let
 end
 
 
-test1 = []
-
 function trackingcor_INT_b(brange, rval, freq, tsend)
     data = zeros(length(brange), 2)
     u0=[0.5]
@@ -549,229 +479,7 @@ function trackingcor_INT_b(brange, rval, freq, tsend)
         data[bi, 2] = INT
     end
     return data
-end #"Integral" doesn't show trade off particularly well
-
-let 
-    data_lowr = trackingcor_CV_b(0.00001:0.00001:0.003, 0.0, 0.1, 10000.0)
-    data_medr = trackingcor_CV_b(0.00001:0.00001:0.003, 0.0005, 0.1, 10000.0)
-    data_highr = trackingcor_CV_b(0.00001:0.00001:0.003, 0.001, 0.1, 10000.0)
-    stability_b = figure()
-    subplot(1,3,1)
-    plot(data_lowr[:,1], data_lowr[:,4], color="blue")
-    ylabel("CV(Solution)/CV(Attractor)")
-    xlabel("bacteriophage (b)")
-    subplot(1,3,2)
-    plot(data_medr[:,1], data_medr[:,4], color="blue")
-    ylabel("CV(Solution)/CV(Attractor)")
-    xlabel("bacteriophage (b)")
-    subplot(1,3,3)
-    plot(data_highr[:,1], data_highr[:,4], color="blue")
-    ylabel("CV(Solution)/CV(Attractor)")
-    xlabel("bacteriophage (b)")
-    tight_layout()
-    return stability_b
-    # savefig(joinpath(abpath(), "figs/conjugation_stability.pdf"))
 end
-
-data_lowr = trackingcor_INT_b(0.00001:0.00001:0.003, 0.0, 0.1, 10000.0)
-
-let 
-    data_lowr = trackingcor_INT_b(0.00001:0.00001:0.002, 0.0, 0.1, 10000.0)
-    data_medr = trackingcor_INT_b(0.00001:0.00001:0.002, 0.0005, 0.1, 10000.0)
-    data_highr = trackingcor_INT_b(0.00001:0.00001:0.002, 0.001, 0.1, 10000.0)
-    stability_b = figure()
-    subplot(1,3,1)
-    plot(data_lowr[:,1], data_lowr[:,2], color="blue")
-    ylabel("Int(Solution)/Int(Attractor)")
-    xlabel("bacteriophage (b)")
-    subplot(1,3,2)
-    plot(data_medr[:,1], data_medr[:,2], color="blue")
-    ylabel("Int(Solution)/Int(Attractor)")
-    xlabel("bacteriophage (b)")
-    subplot(1,3,3)
-    plot(data_highr[:,1], data_highr[:,2], color="blue")
-    ylabel("Int(Solution)/Int(Attractor)")
-    xlabel("bacteriophage (b)")
-    tight_layout()
-    return stability_b
-    # savefig(joinpath(abpath(), "figs/conjugation_stability.pdf"))
-end
-
-
-function trackingcor_CV_r(rrange, bval, freq, tsend)
-    data = zeros(length(rrange), 4)
-    u0=[0.5]
-    tspan=(0.0, tsend)
-    @threads for ri in eachindex(rrange)
-        par = BacPhageSineForcedPar(r = rrange[ri], b = bval, per=0.5, amp=0.4, mid=-0.002)
-        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, RadauIIA5())
-        solseries = sol(tsend-1000.0:freq:tsend)
-        selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
-        seriesattractor = attractordata(selection, par)
-        CV = trackattractor_CV(solseries, seriesattractor)
-        data[ri, 1] = rrange[ri]
-        data[ri, 2] = CV[1]
-        data[ri, 3] = CV[2]
-        data[ri, 4] = CV[1]/CV[2]
-    end
-    return data
-end
-
-let 
-    data_lowb = trackingcor_CV_r(0.00001:0.00001:0.003, 0.0, 0.1, 10000.0)
-    data_medb = trackingcor_CV_r(0.00001:0.00001:0.003, 0.0005, 0.1, 10000.0)
-    data_highb = trackingcor_CV_r(0.00001:0.00001:0.003, 0.001, 0.1, 10000.0)
-    stability_r = figure()
-    subplot(1,3,1)
-    plot(data_lowb[:,1], data_lowb[:,4], color="blue")
-    ylabel("CV(Solution)/CV(Attractor)")
-    xlabel("conjugation (r)")
-    subplot(1,3,2)
-    plot(data_medb[:,1], data_medb[:,4], color="blue")
-    ylabel("CV(Solution)/CV(Attractor)")
-    xlabel("conjugation (r)")
-    subplot(1,3,3)
-    plot(data_highb[:,1], data_highb[:,4], color="blue")
-    ylabel("CV(Solution)/CV(Attractor)")
-    xlabel("conjugation (r)")
-    tight_layout()
-    return stability_r
-    # savefig(joinpath(abpath(), "figs/conjugation_stability.pdf"))
-end
-
-let
-    u0=[0.5]
-    tsend = 10000.0
-    freq=0.1
-    tspan=(0.0, tsend)
-    par = BacPhageSineForcedPar(r = 0.00001, b = 0.001, per=0.5, amp=0.4, mid=-0.002)
-    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-    sol = solve(prob, RadauIIA5())
-    solseries = sol(tsend-1000.0:freq:tsend)
-    selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
-    seriesattractor = attractordata(selection, par)
-    test = figure()
-    plot(solseries.t,solseries.u)
-    plot(solseries.t, seriesattractor)
-    return test
-end
-
-let
-    u0=[0.5]
-    tsend = 10000.0
-    freq=0.1
-    tspan=(0.0, tsend)
-    par = BacPhageSineForcedPar(r = 0.001, b = 0.00001, per=0.5, amp=0.4, mid=-0.002)
-    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-    sol = solve(prob, RadauIIA5())
-    solseries = sol(tsend-1000.0:freq:tsend)
-    selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
-    seriesattractor = attractordata(selection, par)
-    test = figure()
-    plot(solseries.t,solseries.u)
-    plot(solseries.t, seriesattractor)
-    return test
-end
-
-bifurc1 = [interior_equil(s, BacPhageSineForcedPar(r = 0.001, b = 0.00001, per=0.5, amp=0.4, mid=-0.002)) for s in -0.01:0.001:0.01]
-
-let 
-    srange = -0.01:0.00001:-0.00101
-    bifurc1 = [interior_equil(s, BacPhageSineForcedPar(r = 0.001, b = 0.00001, per=0.5, amp=0.4, mid=-0.002)) for s in -0.01:0.00000001:-0.00101]
-    bifurc2 = [interior_equil(s, BacPhageSineForcedPar(r = 0.00001, b = 0.001, per=0.5, amp=0.4, mid=-0.002)) for s in -0.01:0.0001:-0.00101]
-    test = figure()
-    plot(-0.01:0.00000001:-0.00101, bifurc1, color="blue")
-    plot(-0.01:0.0001:-0.00101, bifurc2, color="red")
-    ylim(0,1)
-    xlim(-0.01,0.01)
-    return test
-end
-
-let 
-    srange = -0.01:0.00001:-0.00101
-    bifurc1 = [interior_equil(s, BacPhageSineForcedPar(r = 0.001, b = 0.001, per=0.5, amp=0.4, mid=-0.002)) for s in -0.01:0.00000001:-0.00101]
-    bifurc2 = [interior_equil(s, BacPhageSineForcedPar(r = 0.00001, b = 0.001, per=0.5, amp=0.4, mid=-0.002)) for s in -0.01:0.0001:-0.00101]
-    test = figure()
-    plot(-0.01:0.00000001:-0.00101, bifurc1, color="blue")
-    plot(-0.01:0.0001:-0.00101, bifurc2, color="red")
-    ylim(0,1)
-    xlim(-0.01,0.01)
-    return test
-end
-
-
-function braddition_tracking(brange, rrange, smid, freq, tsend)
-    data = zeros(length(brange)+1, length(rrange)+1)
-    u0=[0.5]
-    tspan=(0.0, tsend)
-    @threads for bi in eachindex(brange)
-        for ri in eachindex(rrange)
-        par = BacPhageSineForcedPar(b = brange[bi], r=rrange[ri], per=0.5, amp=0.4, mid=smid)
-        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, RadauIIA5())
-        solseries = sol(tsend-1000.0:freq:tsend)
-        selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
-        seriesattractor = attractordata(selection, par)
-        # CV = trackattractor_CV(solseries, seriesattractor)
-        INT = trackattractor_INT(solseries[1,:], seriesattractor)
-        data[bi+1,1] = brange[bi]
-        data[1,ri+1] = rrange[ri]
-        data[bi+1, ri+1] = INT
-        end
-    end
-    return data
-end
-
-function braddition_sbifurcset_tracking(brange, rrange, freq, tsend)
-    data = zeros(length(brange)+1, length(rrange)+1)
-    u0=[0.5]
-    tspan=(0.0, tsend)
-    @threads for bi in eachindex(brange)
-        for ri in eachindex(rrange)
-        if brange[bi]==0.0
-            smid = -0.002
-        else
-            smid = -0.002 - brange[bi]
-        end
-        par = BacPhageSineForcedPar(b = brange[bi], r=rrange[ri], per=0.5, amp=0.4, mid=smid)
-        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, RadauIIA5())
-        solseries = sol(tsend-1000.0:freq:tsend)
-        selection = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
-        seriesattractor = attractordata(selection, par)
-        # CV = trackattractor_CV(solseries, seriesattractor)
-        # data[bi+1,1] = brange[bi]
-        # data[1,ri+1] = rrange[ri]
-        # data[bi+1, ri+1] = CV[1]/CV[2]
-        INT = trackattractor_INT(solseries[1,:], seriesattractor)
-        data[bi+1,1] = brange[bi]
-        data[1,ri+1] = rrange[ri]
-        data[bi+1, ri+1] = INT
-        end
-    end
-    return data
-end
-
-# let 
-#     u0=[0.5]
-#     tsend = 10000.0
-#     freq = 0.1
-#     tspan=(0.0, tsend)
-#     par = BacPhageSineForcedPar(b = 0.0, r=0.005, per=0.1, amp=0.4, mid=-0.004)
-#     prob = ODEProblem(bacphager_sine_forced!, u0, tspan, par)
-#     sol = solve(prob, RadauIIA5())
-#     solseries = sol(tsend-100.0:freq:tsend)
-#     selection = [sel_sine(par, t) for t in tsend-100.0:freq:tsend]
-#     seriesattractor = attractordata(selection, par)
-#     test = figure()
-#     plot(solseries.t, solseries.u)
-#     plot(solseries.t, seriesattractor)
-#     return test
-# end
-
-# test = braddition_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, -0.002, 0.1, 10000)
-# setupbparam(test[2:end,1])
 
 function setupbparam(brange)
     for bi in 1:length(brange)
@@ -779,49 +487,23 @@ function setupbparam(brange)
     end
 end
 
-
-let 
-    data = braddition_sbifurcset_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, 0.1, 10000)
-    setupbparam(data[2:end,1])
-    bradditionfigure = figure()
-    plot(data[1,2:end],data[2,2:end], color="blue", label="b=$b1")
-    plot(data[1,2:end],data[3,2:end], color="red", label="b=$b2")
-    plot(data[1,2:end],data[4,2:end], color="orange", label="b=$b3")
-    plot(data[1,2:end],data[5,2:end], color="green", label="b=$b4")
-    legend()
-    return bradditionfigure
-end
-
-
-let 
-    data = braddition_tracking(0.00:0.001:0.003, 0.00001:0.0001:0.003, -0.002, 0.1, 10000)
-    setupbparam(data[2:end,1])
-    bradditionfigure = figure()
-    plot(data[1,2:end],data[2,2:end], color="blue", label="b=$b1")
-    plot(data[1,2:end],data[3,2:end], color="red", label="b=$b2")
-    plot(data[1,2:end],data[4,2:end], color="orange", label="b=$b3")
-    plot(data[1,2:end],data[5,2:end], color="green", label="b=$b4")
-    legend()
-    return bradditionfigure
-end
-
-function splitting_trackingdata(trackingdata, r_rb)
-    if r_rb == "r"
-        return hcat(trackingdata[1,2:end],trackingdata[2,2:end])
-    elseif r_rb == "rb"
-        # rbdata = zeros((size(trackingdata,1)-2)*(size(trackingdata,2)-1), 2)
-        bparam = repeat(trackingdata[3:end,1], inner=size(trackingdata,2)-1)
-        rparam = repeat(trackingdata[1,2:end], size(trackingdata,1)-2)
-        bplusr = zeros((size(trackingdata,1)-2)*(size(trackingdata,2)-1), 1)
-        for i in 1:length(bparam)
-            bplusr[i]= bparam[i]+rparam[i]
-        end
-        trackingval = reshape(transpose(trackingdata[3:end,2:end]), ((size(trackingdata,1)-2)*(size(trackingdata,2)-1),1))
-        return hcat(bplusr, trackingval)
-    else
-        error("r_rb should either be r or rb")
-    end
-end #change to spit out each line for r version of figure
+# function splitting_trackingdata(trackingdata, r_rb)
+#     if r_rb == "r"
+#         return hcat(trackingdata[1,2:end],trackingdata[2,2:end])
+#     elseif r_rb == "rb"
+#         # rbdata = zeros((size(trackingdata,1)-2)*(size(trackingdata,2)-1), 2)
+#         bparam = repeat(trackingdata[3:end,1], inner=size(trackingdata,2)-1)
+#         rparam = repeat(trackingdata[1,2:end], size(trackingdata,1)-2)
+#         bplusr = zeros((size(trackingdata,1)-2)*(size(trackingdata,2)-1), 1)
+#         for i in 1:length(bparam)
+#             bplusr[i]= bparam[i]+rparam[i]
+#         end
+#         trackingval = reshape(transpose(trackingdata[3:end,2:end]), ((size(trackingdata,1)-2)*(size(trackingdata,2)-1),1))
+#         return hcat(bplusr, trackingval)
+#     else
+#         error("r_rb should either be r or rb")
+#     end
+# end #change to spit out each line for r version of figure
 
 
 function brconstrained_tracking(rplusbrange, rbratio, smid, freq, tsend)
