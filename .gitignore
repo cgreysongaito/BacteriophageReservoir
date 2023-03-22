@@ -3,3 +3,7 @@ doc/
 *.docx
 *.odt
 *.pdf
+*.png
+*.eps
+*.jpg
+*.svg
