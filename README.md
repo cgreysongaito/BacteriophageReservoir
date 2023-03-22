@@ -12,11 +12,11 @@ Christopher J. Greyson-Gaito<sup>*1.</sup>, Jacob Wilde<sup>2.</sup>, Cortland K
 2. Department of Molecular and Cellular Biology, University of Guelph, Guelph, ON, Canada, N1G 2W1
 
 ## ORCID
-* CJGG &ndash; 0000-0001-8716-0290
-* JW &ndash; 0000-0002-3137-115X
-* CG &ndash; 0000-0003-2993-7043
-* EAV &ndash; 0000-0002-8716-327X
-* KSM &ndash; 0000-0001-6031-7913
+* CJGG &ndash; [0000-0001-8716-0290](https://orcid.org/0000-0001-8716-0290)
+* JW &ndash; [0000-0002-3137-115X](https://orcid.org/0000-0002-3137-115X)
+* CG &ndash; [0000-0003-2993-7043](https://orcid.org/0000-0003-2993-7043)
+* EAV &ndash; [0000-0002-8716-327X](https://orcid.org/0000-0002-8716-327X)
+* KSM &ndash; [0000-0001-6031-7913](https://orcid.org/0000-0001-6031-7913)
 
 ## Julia scripts and datasets
 
