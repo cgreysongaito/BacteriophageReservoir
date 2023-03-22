@@ -448,6 +448,18 @@ function trackattractor_INT(solutiondata, attractordata)
     return log10(abs(sum(INTdiff)))
 end
 
+function trackattractor_INT2(solutiondata, attractordata)
+    INTdiff = zeros(length(solutiondata))
+    for i in 1:length(solutiondata)
+        INTdiff[i] = abs(solutiondata[i] - attractordata[i])
+    end
+    return sum(INTdiff)
+end
+
+function trackattractor_INT3(solutiondata, attractordata)
+    return log10(abs(sum(solutiondata)-sum(attractordata)))
+end
+
 let 
     u0=[0.5]
     tsend = 10000.0
@@ -527,7 +539,7 @@ function brconstrained_tracking(rplusbrange, rbratio, smid, freq, tsend)
         # CV = trackattractor_CV(solseries, seriesattractor)
         # data[rbi, 1] = rplusbrange[rbi]
         # data[rbi, 2] = CV[1]/CV[2]
-        INT = trackattractor_INT(solseries[1,:], seriesattractor)
+        INT = trackattractor_INT3(solseries[1,:], seriesattractor)
         data[rbi, 1] = rplusbrange[rbi]
         data[rbi, 2] = INT
     end

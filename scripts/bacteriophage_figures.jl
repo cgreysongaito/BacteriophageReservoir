@@ -49,6 +49,9 @@ let
     savefig(joinpath(abpath(), "figs/patternsfigure.pdf"))
 end
 
+#Figure 2 (Stability Schematic)
+#Set up of 
+
 
 #Figure
 
@@ -156,8 +159,8 @@ let
     xticks([0.0, 0.001, 0.002, 0.003, 0.004], fontsize=12)
     yticks(fontsize=12)
     legend(fontsize = 12)
-    # return rplusbconstrainedtrackingfigure
-    savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
+    return rplusbconstrainedtrackingfigure
+    # savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
 end
 
 
