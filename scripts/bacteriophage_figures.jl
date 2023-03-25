@@ -4,6 +4,61 @@ include("bacteriophage_buffer.jl")
 include("bacteriophage_stochastic.jl")
 
 
+#Figure 2 (Stability Schematic)
+#Set up of equilibrium and solution curves
+let
+    u0=[0.5]
+    tsend = 10000.0
+    freq = 0.1
+    tspan=(0.0, tsend)
+    par1 = BacPhageSineForcedPar(b = 0.001, r=0.001, per=0.5, amp=0.4, mid=-0.04)
+    prob1 = ODEProblem(bacphage_sine_forced!, u0, tspan, par1)
+    sol1 = solve(prob1, RadauIIA5())
+    solseries1 = sol1(tsend-15.0:freq:tsend)
+    sel1 = [sel_sine(par1, t) for t in solseries1.t]
+    equil1 = [stableequil(s, par1) for s in sel1]
+    par2 = BacPhageSineForcedPar(b = 0.001, r=0.001, per=0.5, amp=0.4, mid=-0.0025)
+    prob2 = ODEProblem(bacphage_sine_forced!, u0, tspan, par2)
+    sol2 = solve(prob2, RadauIIA5())
+    solseries2 = sol2(tsend-15.0:freq:tsend)
+    sel2 = [sel_sine(par2, t) for t in solseries2.t]
+    equil2 = [stableequil(s, par2) for s in sel2]
+    par3 = BacPhageSineForcedPar(b = 0.001, r=0.001, per=0.5, amp=0.4, mid=-0.001)
+    prob3 = ODEProblem(bacphage_sine_forced!, u0, tspan, par3)
+    sol3 = solve(prob3, RadauIIA5())
+    solseries3 = sol3(tsend-15.0:freq:tsend)
+    sel3 = [sel_sine(par3, t) for t in solseries3.t]
+    equil3 = [stableequil(s, par3) for s in sel3]
+    trackingsetup = figure(figsize=(8,2.5))
+    subplot(1,3,1)
+    plot(solseries1.t, solseries1.u, color="black")
+    plot(solseries1.t, equil1, color="black", linestyle="dashed")
+    ylabel("C", fontsize=15)
+    xlabel("Time", fontsize=15)
+    ylim(-0.05,1.05)
+    yticks([0.0,0.5,1.0])
+    tick_params(axis="x", which="both", bottom=False, labelbottom=False)
+    subplot(1,3,2)
+    plot(solseries2.t, solseries2.u, color="black")
+    plot(solseries2.t, equil2, color="black", linestyle="dashed")
+    ylabel("C", fontsize=15)
+    xlabel("Time", fontsize=15)
+    ylim(-0.05,1.05)
+    yticks([0.0,0.5,1.0])
+    tick_params(axis="x", which="both", bottom=False, labelbottom=False)
+    subplot(1,3,3)
+    plot(solseries3.t, solseries3.u, color="black")
+    plot(solseries3.t, equil3, color="black", linestyle="dashed")
+    ylabel("C", fontsize=15)
+    xlabel("Time", fontsize=15)
+    ylim(-0.05,1.05)
+    yticks([0.0,0.5,1.0])
+    tick_params(axis="x", which="both", bottom=False, labelbottom=False)
+    tight_layout()
+    # return trackingsetup
+    savefig(joinpath(abpath(), "figs/trackingsetup.pdf"))
+end
+
 #Figure - showing the different patterns of model
 let 
     u0=[0.5]
@@ -49,9 +104,6 @@ let
     savefig(joinpath(abpath(), "figs/patternsfigure.pdf"))
 end
 
-#Figure 2 (Stability Schematic)
-#Set up of 
-
 
 #Figure
 
@@ -74,7 +126,7 @@ let
     plot(white_noise_mid_data[:, 1], white_noise_mid_data[:, 2], color="black")
     plot(white_noise_mid_data[:, 1], white_noise_mid_data[:, 3], color="black")
     vlines(bifurc(par), 0.0, 1.0, linestyles="dashed", color="black") #bifurc value or r+b=-mid
-    xlabel("Average Selection", fontsize = 15)
+    xlabel("Average selection", fontsize = 15)
     ylabel("Mean C min & max", fontsize = 15)
     yticks([0.0, 0.5,1.0], fontsize = 12)
     xticks([-0.010, -0.002, 0.0])
