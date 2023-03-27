@@ -54,8 +54,8 @@ let
     yticks([0.0,0.5,1.0])
     tick_params(axis="x", which="both", bottom=False, labelbottom=False)
     tight_layout()
-    # return trackingsetup
-    savefig(joinpath(abpath(), "figs/trackingsetup.pdf"))
+    return trackingsetup
+    # savefig(joinpath(abpath(), "figs/trackingsetup.pdf"))
 end
 
 #Figure - showing the different patterns of model
@@ -99,8 +99,8 @@ let
     yticks([0.0,0.5,1.0])
     tick_params(axis="x", which="both", bottom=False, labelbottom=False)
     tight_layout()
-    # return patternsfigure
-    savefig(joinpath(abpath(), "figs/patternsfigure.pdf"))
+    return patternsfigure
+    # savefig(joinpath(abpath(), "figs/patternsfigure.pdf"))
 end
 
 
@@ -131,8 +131,8 @@ let
     xticks([-0.010, -0.002, 0.0])
     title("White Noise", fontsize = 15)
     tight_layout()
-    # return bifurcfigure
-    savefig(joinpath(abpath(), "figs/conjbacsel_balance_sinewhite.pdf"))
+    return bifurcfigure
+    # savefig(joinpath(abpath(), "figs/conjbacsel_balance_sinewhite.pdf"))
 end
 
 red_noise_midbelow = bifurc_red_mid(0.0:0.1:0.9, -0.004, 6, 100000.0)
@@ -168,18 +168,18 @@ let
     yticks([0.0,0.5,1.0], fontsize = 12)
     xticks(fontsize = 12)
     tight_layout()
-    # return red_noise
-    savefig(joinpath(abpath(), "figs/rednoise_mid_figure.pdf"))
+    return red_noise
+    # savefig(joinpath(abpath(), "figs/rednoise_mid_figure.pdf"))
 end
 
 ##Stability of Gut Function
 
 #Figure
 let 
-    data_increaseb = time_fixation_b(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
-    data_decreaseb = time_fixation_b(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
-    data_increaser = time_fixation_r(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
-    data_decreaser = time_fixation_r(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
+    data_increaseb = time_selectionswitch_b(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
+    data_decreaseb = time_selectionswitch_b(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
+    data_increaser = time_selectionswitch_r(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
+    data_decreaser = time_selectionswitch_r(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
     delayfigure = figure(figsize=(9,7))
     plot(data_increaseb[1], data_increaseb[2], color="#73D055FF", linewidth = 3, label="Positive (b)")
     plot(data_decreaseb[1], data_decreaseb[2], color="#440154FF", linewidth = 3, label="Negative (b)")
@@ -191,8 +191,8 @@ let
     ylabel("Return Time", fontsize = 15)
     ylim(0.0, 620)
     legend(title = "Selection Switch", title_fontsize = 15, fontsize = 12)
-    # return delayfigure
-    savefig(joinpath(abpath(), "figs/delay_selectionswitch.pdf"))
+    return delayfigure
+    # savefig(joinpath(abpath(), "figs/delay_selectionswitch.pdf"))
 end
 
 #Final figure (tracking)
@@ -245,8 +245,8 @@ let
     xlabel("Time")
     legend()
     tight_layout()
-    # return workdecompositionfigure
-    savefig(joinpath(abpath(), "figs/workdecompositionfigure.pdf"))
+    return workdecompositionfigure
+    # savefig(joinpath(abpath(), "figs/workdecompositionfigure.pdf"))
 end
 
 
@@ -268,14 +268,11 @@ let
     xlabel("C")
     title("s=-0.002")
     # fill_between(Crange, conj_bac, conj_bac_sel, color="#73D055FF")
-    # return HGTsel_work
-    savefig(joinpath(abpath(), "figs/HGTsel_work_002.pdf"))
+    return HGTsel_work
+    # savefig(joinpath(abpath(), "figs/HGTsel_work_002.pdf"))
 end
 
-
-#Eigen integral balancing
-bifurcintegral_data = bifurcintegral_eigen1_mid(-0.01:0.0001:0.001, 100000.0)
-
+#Showing changing b and r change Ĉ=1 eigenvalue in the same way
 let 
     srange = -0.02:0.01:0.02
     par  = BacPhageSineForcedPar(b = 0.001)
@@ -285,43 +282,48 @@ let
     eigenr001 = [eigen1(s, BacPhageSineForcedPar(r = 0.001)) for s in srange]
     eigenr01 = [eigen1(s, BacPhageSineForcedPar(r = 0.01)) for s in srange]
     eigenr1 = [eigen1(s, BacPhageSineForcedPar(r = 0.1)) for s in srange]
-    midrange = -0.01:0.0001:0.001
-    # bifurcmid_data = bifurcmid(midrange, 100000.0)
-    # bifurcintegral_data = bifurcintegral_eigen1_mid(midrange, 100000.0)
-    bifurcfigure = figure(figsize=(8,8))
-    subplot(3,2,1)
+    eigenfigure = figure(figsize=(7,3))
+    subplot(1,2,1)
     plot(srange, eigenb001, color="blue", label = "b=0.001", linewidth=3)
     plot(srange, eigenb01, color="green", label = "b=0.01", linewidth=3)
     plot(srange, eigenb1, color="red", label = "b=0.1", linewidth=3)
     xlabel("s")
     ylabel("λ (Ĉ=1)")
     legend()
-    subplot(3,2,2)
+    subplot(1,2,2)
     plot(srange, eigenr001, color="blue", label = "r=0.001", linewidth=3)
     plot(srange, eigenr01, color="green", label = "r=0.01", linewidth=3)
     plot(srange, eigenr1, color="red", label = "r=0.1", linewidth=3)
     xlabel("s")
     ylabel("λ (Ĉ=1)")
     legend()
-    subplot(3,2,3)
+    tight_layout()
+    return eigenfigure
+    # savefig(joinpath(abpath(), "figs/conjbacsel_balance.pdf"))
+end
+
+#Eigen integral balancing
+bifurcintegral_data = bifurcintegral_eigen1_mid(-0.01:0.0001:0.001, 100000.0)
+
+let 
+    srange = -0.02:0.01:0.02
+    par  = BacPhageSineForcedPar(b = 0.001)
+    eigenb001 = [eigen1(s, par) for s in srange]
+    bifurc_integralfigure = figure(figsize=(8,8))
+    subplot(1,2,1)
     plot(srange, eigenb001, color="blue", linewidth=3)
     hlines(0.0, -0.02, 0.02, linewidth=0.5)
     vlines(bifurc(par), -0.02, 0.02, linewidth=0.5)
     xlabel("s")
     ylabel("λ (Ĉ=1)")
-    subplot(3,2,5)
-    plot(bifurcmid_data[:, 1], bifurcmid_data[:, 2], color="black")
-    plot(bifurcmid_data[:, 1], bifurcmid_data[:, 3], color="black")
-    vlines(bifurc(par), 0.0, 1.0, linestyles="dashed", color="black") #bifurc value or r+b=-mid
-    xlabel("Selection midpoint")
-    ylabel("C min/max")
-    subplot(3,2,6)
+    subplot(1,2,2)
     plot(bifurcintegral_data[:, 1], bifurcintegral_data[:, 2], color="black")
     plot(bifurcintegral_data[:, 1], bifurcintegral_data[:, 3], color="black")
     vlines(0.0, 0.0, 1.0, linestyles="dashed", color="black")
     xlabel("λ Integral")
-    ylabel("C min/max")
+    ylabel("C min & max")
     tight_layout()
-    # return bifurcfigure
-    savefig(joinpath(abpath(), "figs/conjbacsel_balance.pdf"))
+    return bifurc_integralfigure
+    # savefig(joinpath(abpath(), "figs/conjbacsel_balance.pdf"))
 end
+
