@@ -1,8 +1,7 @@
 include("packages.jl")
 include("bacteriophage_commoncode.jl")
-include("bacteriophage_buffer.jl")
-include("bacteriophage_stochastic.jl")
-
+include("bacteriophage_gutresponses.jl")
+include("bacteriophage_stability.jl")
 
 #Figure 2 (Stability Schematic)
 #Set up of equilibrium and solution curves
@@ -217,6 +216,7 @@ end
 
 
 #Supporting Information
+include("bacteriophage_supportinginformation.jl")
 
 #Figure - Decomposition of conjugation, bacteriophage, and selection "work"
 let 
