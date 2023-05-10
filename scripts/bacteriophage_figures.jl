@@ -135,6 +135,54 @@ let
     # savefig(joinpath(abpath(), "figs/conjbacsel_balance_sinewhite.pdf"))
 end
 
+
+
+##Stability of Gut Function
+
+#Final figure (tracking)
+
+let 
+    data001 = brconstrained_tracking(0.00001:0.0001:0.004, 0.1, -0.002, 0.1, 10000.0)
+    data1 = brconstrained_tracking(0.00001:0.0001:0.004, 1, -0.002, 0.1, 10000.0)
+    data10 = brconstrained_tracking(0.00001:0.0001:0.004, 10, -0.002, 0.1, 10000.0)
+    rplusbconstrainedtrackingfigure = figure(figsize = (7,5))
+    plot(data001[:,1], data001[:,2], color="#FDE725FF", label="b/r=0.1")
+    plot(data1[:,1], data1[:,2], color="#29AF7FFF", label="b/r=1")
+    plot(data10[:,1], data10[:,2], color="#39568CFF", label="b/r=10")
+    xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
+    ylabel("Log 10 absolute difference \nbetween solution and optimum", fontsize = 15)
+    xticks([0.0, 0.001, 0.002, 0.003, 0.004], fontsize=12)
+    yticks(fontsize=12)
+    legend(fontsize = 12)
+    return rplusbconstrainedtrackingfigure
+    # savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
+end
+
+#Figure
+let 
+    data_increaseb = time_selectionswitch_b(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
+    data_decreaseb = time_selectionswitch_b(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
+    data_increaser = time_selectionswitch_r(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
+    data_decreaser = time_selectionswitch_r(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
+    delayfigure = figure(figsize=(9,7))
+    plot(data_increaseb[1], data_increaseb[2], color="#73D055FF", linewidth = 3, label="Positive (b)")
+    plot(data_decreaseb[1], data_decreaseb[2], color="#440154FF", linewidth = 3, label="Negative (b)")
+    plot(data_increaser[1], data_increaser[2], color="#73D055FF", linewidth = 3, label="Positive (r)", linestyle="dashed")
+    plot(data_decreaser[1], data_decreaser[2], color="#440154FF", linewidth = 3, label="Negative (r)", linestyle="dashed")
+    xticks(fontsize=12)
+    yticks(fontsize=12)
+    xlabel("Bacteriophage level (\$b\$)\nConjugation level (\$r\$)", fontsize = 15)
+    ylabel("Return Time", fontsize = 15)
+    ylim(0.0, 620)
+    legend(title = "Selection Switch", title_fontsize = 15, fontsize = 12)
+    return delayfigure
+    # savefig(joinpath(abpath(), "figs/delay_selectionswitch.pdf"))
+end
+
+
+#Supporting Information
+include("bacteriophage_supportinginformation.jl")
+
 red_noise_midbelow = bifurc_red_mid(0.0:0.1:0.9, -0.004, 6, 100000.0)
 red_noise_midcentred = bifurc_red_mid(0.0:0.1:0.9, -0.002, 6, 100000.0)
 red_noise_midabove = bifurc_red_mid(0.0:0.1:0.9, 0.0, 6, 100000.0)
@@ -172,51 +220,9 @@ let
     # savefig(joinpath(abpath(), "figs/rednoise_mid_figure.pdf"))
 end
 
-##Stability of Gut Function
-
-#Figure
-let 
-    data_increaseb = time_selectionswitch_b(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
-    data_decreaseb = time_selectionswitch_b(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
-    data_increaser = time_selectionswitch_r(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
-    data_decreaser = time_selectionswitch_r(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
-    delayfigure = figure(figsize=(9,7))
-    plot(data_increaseb[1], data_increaseb[2], color="#73D055FF", linewidth = 3, label="Positive (b)")
-    plot(data_decreaseb[1], data_decreaseb[2], color="#440154FF", linewidth = 3, label="Negative (b)")
-    plot(data_increaser[1], data_increaser[2], color="#73D055FF", linewidth = 3, label="Positive (r)", linestyle="dashed")
-    plot(data_decreaser[1], data_decreaser[2], color="#440154FF", linewidth = 3, label="Negative (r)", linestyle="dashed")
-    xticks(fontsize=12)
-    yticks(fontsize=12)
-    xlabel("Bacteriophage level (\$b\$)\nConjugation level (\$r\$)", fontsize = 15)
-    ylabel("Return Time", fontsize = 15)
-    ylim(0.0, 620)
-    legend(title = "Selection Switch", title_fontsize = 15, fontsize = 12)
-    return delayfigure
-    # savefig(joinpath(abpath(), "figs/delay_selectionswitch.pdf"))
-end
-
-#Final figure (tracking)
-
-let 
-    data05 = brconstrained_tracking(0.00001:0.0001:0.004, 0.01, -0.002, 0.1, 10000.0)
-    data1 = brconstrained_tracking(0.00001:0.0001:0.004, 1, -0.002, 0.1, 10000.0)
-    data2 = brconstrained_tracking(0.00001:0.0001:0.004, 3, -0.002, 0.1, 10000.0)
-    rplusbconstrainedtrackingfigure = figure(figsize = (7,5))
-    plot(data05[:,1], data05[:,2], color="#FDE725FF", label="r/b=0.01")
-    plot(data1[:,1], data1[:,2], color="#29AF7FFF", label="r/b=1")
-    plot(data2[:,1], data2[:,2], color="#39568CFF", label="r/b=3")
-    xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
-    ylabel("Log 10 absolute difference \nbetween solution and equilibrium", fontsize = 15)
-    xticks([0.0, 0.001, 0.002, 0.003, 0.004], fontsize=12)
-    yticks(fontsize=12)
-    legend(fontsize = 12)
-    return rplusbconstrainedtrackingfigure
-    # savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
-end
 
 
-#Supporting Information
-include("bacteriophage_supportinginformation.jl")
+
 
 #Figure - Decomposition of conjugation, bacteriophage, and selection "work"
 let 
