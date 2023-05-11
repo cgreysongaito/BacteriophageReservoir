@@ -2,10 +2,12 @@
 function optimum(selectiondata)
     optimumdata = zeros(length(selectiondata))
     for si in eachindex(selectiondata)
-        if selectiondata[si] >= 0.0
+        if selectiondata[si] > 0.0
             optimumdata[si] = 1.0
-        else
+        elseif selectiondata[si] < 0.0
             optimumdata[si] = 0.0
+        else
+            optimumdata[si] = NaN
         end
     end
     return optimumdata
@@ -25,25 +27,47 @@ function setupbparam(brange)
     end
 end
 
-function trackattractor_INT(solutiondata, optimumdata)
-    INTdiff = zeros(length(solutiondata))
+function trackoptimum(solutiondata, optimumdata)
+    optimumdiff = zeros(length(solutiondata))
     for i in 1:length(solutiondata)
-        INTdiff[i] = solutiondata[i] - optimumdata[i]
+        optimumdiff[i] = abs(solutiondata[i] - optimumdata[i])
     end
-    return log10(abs(sum(INTdiff)))
+    return optimumdiff
 end
 
-function trackattractor_INT2(solutiondata, optimumdata)
-    INTdiff = zeros(length(solutiondata))
-    for i in 1:length(solutiondata)
-        INTdiff[i] = abs(solutiondata[i] - optimumdata[i])
-    end
-    return sum(INTdiff)
+let
+    u0=[0.5]
+    tsend = 10000
+    freq = 0.1
+    tspan=(0.0, tsend)
+    par = BacPhageSineForcedPar(b = 0.01, r=0.01, per=0.5, amp=0.4, mid=-0.01)
+    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+    sol = solve(prob, RadauIIA5())
+    solseries = sol(tsend-100.0:freq:tsend)
+    selectiondata = [sel_sine(par, t) for t in tsend-100.0:freq:tsend]
+    seriesoptimum = optimum(selectiondata)
+    optimumdiff = trackoptimum(solseries[1,:], seriesoptimum)
+    # test = figure()
+    # plot(tsend-100.0:freq:tsend, optimumdiff)
+    # # plot(tsend-100.0:freq:tsend, solseries[1,:])
+    # plot(tsend-100.0:freq:tsend, seriesoptimum)
+    # return test
+    return mean(optimumdiff)
 end
 
-function trackattractor_INT3(solutiondata, optimumdata)
-    return log10(abs(sum(solutiondata)-sum(optimumdata)))
-end
+# function trackattractor_INT(solutiondata, optimumdata)
+#     INTdiff = zeros(length(solutiondata))
+#     for i in 1:length(solutiondata)
+#         INTdiff[i] = solutiondata[i] - optimumdata[i]
+#     end
+#     return log10(abs(sum(INTdiff)))
+# end
+
+
+
+# function trackattractor_INT3(solutiondata, optimumdata)
+#     return log10(abs(sum(solutiondata)-sum(optimumdata)))
+# end
 
 # function trackingcor_INT_b(brange, rval, freq, tsend)
 #     data = zeros(length(brange), 2)
@@ -63,7 +87,7 @@ end
 #     return data
 # end
 
-function brconstrained_tracking(bplusrrange, brratio, smid, freq, tsend)
+function brconstrained_stabilitytracking(bplusrrange, brratio, smid, freq, tsend)
     data = zeros(length(bplusrrange), 2)
     u0=[0.5]
     tspan=(0.0, tsend)
@@ -76,9 +100,9 @@ function brconstrained_tracking(bplusrrange, brratio, smid, freq, tsend)
         solseries = sol(tsend-1000.0:freq:tsend)
         selectiondata = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
         seriesoptimum = optimum(selectiondata)
-        INT = trackattractor_INT3(solseries[1,:], seriesoptimum)
+        optimumdiff = trackoptimum(solseries[1,:], seriesoptimum)
         data[bri, 1] = bplusrrange[bri]
-        data[bri, 2] = INT
+        data[bri, 2] = std(optimumdiff)/mean(optimumdiff)
     end
     return data
 end
