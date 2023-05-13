@@ -147,10 +147,8 @@ function noise_creation(μ, σ, corr, len, seed)
     return recentrednoise
 end #produces noise with a certain autocorrelation. variance of the noise is scaled using method in Wichmann et al. 2005
 
-function bacphage_pert_sol(b, u0, freq, μ, σ, corr, seed, tsend, tvals)
-    par = BacPhagePar()
-    par.b = b
-    par.s = μ
+function bacphage_pert_sol(bval, rval, u0, freq, μ, σ, corr, seed, tsend, tvals)
+    par = BacPhagePar(b = bval, r=rval, s=μ)
     noise = noise_creation(μ, σ, corr, tsend / freq, seed)
     count = 1
     tspan = (0.0, tsend)

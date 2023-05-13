@@ -28,7 +28,7 @@ function trackoptimum(solutiondata, optimumdata)
     return optimumdiff
 end
 
-function brconstrained_stabilitytracking(bplusrrange, brratio, smid, freq, tsend)
+function brconstrained_stabilitytracking_sine(bplusrrange, brratio, smid, freq, tsend)
     data = zeros(length(bplusrrange), 2)
     u0=[0.5]
     tspan=(0.0, tsend)
@@ -44,6 +44,28 @@ function brconstrained_stabilitytracking(bplusrrange, brratio, smid, freq, tsend
         optimumdiff = trackoptimum(solseries[1,:], seriesoptimum)
         data[bri, 1] = bplusrrange[bri]
         data[bri, 2] = std(optimumdiff)/mean(optimumdiff)
+    end
+    return data
+end
+
+function noise_stabilityprep(bval, rval, smid, freq, tsend, reps)
+    CVdata = zeros(length(reps))
+    for i in 1:length(reps)
+        solnoise = bacphage_pert_sol(bval, rval, 0.5, freq, smid, 0.05, 0.0, i, tsend, tsend-1000.0:1.0:tsend)
+        seriesoptimum = optimum(solnoise[2])
+        optimumdiff = trackoptimum(solnoise[1], seriesoptimum)
+        CVdata[i] = std(optimumdiff)/mean(optimumdiff)
+    end
+    return mean(CVdata)
+end
+
+function brconstrained_stabilitytracking_noise(bplusrrange, brratio, smid, freq, tsend, reps)
+    data = zeros(length(bplusrrange), 2)
+    @threads for bri in eachindex(bplusrrange)
+        rval = bplusrrange[bri]/(1+brratio)
+        bval = bplusrrange[bri] - rval
+        data[bri, 1] = bplusrrange[bri]
+        data[bri, 2] = noise_stabilityprep(bval, rval, smid, freq, tsend, reps)
     end
     return data
 end
