@@ -288,3 +288,16 @@ function bifurcintegral_eigen1_mid(midrange, tsend)
     end
     return data
 end
+
+#Red noise
+
+function bifurc_red_mid(corrrange, mid, reps, tend)
+    data = zeros(length(corrrange), 3)
+    @threads for corri in eachindex(corrrange)
+        maxminmeans = noise_mid_reps(mid, corrrange[corri], reps, tend)
+        data[corri, 1] = corrrange[corri]
+        data[corri, 2] = maxminmeans[1]
+        data[corri, 3] = maxminmeans[2]
+    end
+    return data
+end
