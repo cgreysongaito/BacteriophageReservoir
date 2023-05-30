@@ -29,7 +29,7 @@ function trackoptimum(solutiondata, optimumdata)
 end
 
 function brconstrained_stabilitytracking_sine(bplusrrange, brratio, smid, freq, tsend)
-    data = zeros(length(bplusrrange), 2)
+    data = zeros(length(bplusrrange), 4)
     u0=[0.5]
     tspan=(0.0, tsend)
     @threads for bri in eachindex(bplusrrange)
@@ -44,28 +44,37 @@ function brconstrained_stabilitytracking_sine(bplusrrange, brratio, smid, freq, 
         optimumdiff = trackoptimum(solseries[1,:], seriesoptimum)
         data[bri, 1] = bplusrrange[bri]
         data[bri, 2] = std(optimumdiff)/mean(optimumdiff)
+        data[bri, 3] = mean(optimumdiff)
+        data[bri, 4] = sum(optimumdiff)
     end
     return data
 end
 
 function noise_stabilityprep(bval, rval, smid, freq, tsend, reps)
-    CVdata = zeros(length(reps))
+    CVTLdata = zeros(length(reps))
+    meanTLdata = zeros(length(reps))
+    sumTLdata = zeros(length(reps))
     for i in 1:length(reps)
         solnoise = bacphage_pert_sol(bval, rval, 0.5, freq, smid, 0.05, 0.0, i, tsend, tsend-1000.0:1.0:tsend)
         seriesoptimum = optimum(solnoise[2])
         optimumdiff = trackoptimum(solnoise[1], seriesoptimum)
-        CVdata[i] = std(optimumdiff)/mean(optimumdiff)
+        CVTLdata[i] = std(optimumdiff)/mean(optimumdiff)
+        meanTLdata[i] = mean(optimumdiff)
+        sumTLdata[i] = sum(optimumdiff)
     end
-    return mean(CVdata)
+    return [mean(CVTLdata), mean(meanTLdata), mean(sumTLdata)]
 end
 
 function brconstrained_stabilitytracking_noise(bplusrrange, brratio, smid, freq, tsend, reps)
-    data = zeros(length(bplusrrange), 2)
+    data = zeros(length(bplusrrange), 4)
     @threads for bri in eachindex(bplusrrange)
         rval = bplusrrange[bri]/(1+brratio)
         bval = bplusrrange[bri] - rval
+        TLstats = noise_stabilityprep(bval, rval, smid, freq, tsend, reps)
         data[bri, 1] = bplusrrange[bri]
-        data[bri, 2] = noise_stabilityprep(bval, rval, smid, freq, tsend, reps)
+        data[bri, 2] = TLstats[1]
+        data[bri, 3] = TLstats[2]
+        data[bri, 4] = TLstats[3]
     end
     return data
 end

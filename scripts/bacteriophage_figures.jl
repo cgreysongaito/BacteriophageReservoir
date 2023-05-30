@@ -169,6 +169,74 @@ let
     # return rplusbconstrainedtrackingfigure
     savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
 end
+#Mean transitory load
+let 
+    data001_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 0.1, -0.002, 0.1, 10000.0)
+    data1_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 1, -0.002, 0.1, 10000.0)
+    data10_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 10, -0.002, 0.1, 10000.0)
+    data001_noise = brconstrained_stabilitytracking_noise(0.00001:0.0001:0.004, 0.1, -0.002, 1.0, 10000.0, 100)
+    data1_noise = brconstrained_stabilitytracking_noise(0.00001:0.0001:0.004, 1, -0.002, 1.0, 10000.0, 100)
+    data10_noise = brconstrained_stabilitytracking_noise(0.00001:0.0001:0.004, 10, -0.002, 1.0, 10000.0, 100)
+    rplusbconstrainedtrackingfigure = figure(figsize = (5,7))
+    subplot(2,1,1)
+    plot(data001_sine[:,1], data001_sine[:,3], color="#FDE725FF", label="b/r=0.1")
+    plot(data1_sine[:,1], data1_sine[:,3], color="#29AF7FFF", label="b/r=1")
+    plot(data10_sine[:,1], data10_sine[:,3], color="#39568CFF", label="b/r=10")
+    xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
+    ylabel("Mean Transitory Load", fontsize = 15)
+    xticks([0.0, 0.001, 0.002, 0.003, 0.004], fontsize=12)
+    yticks(fontsize=12)
+    legend(fontsize = 12)
+    title("Sine Wave", fontsize = 15)
+    subplot(2,1,2)
+    plot(data001_noise[:,1], data001_noise[:,3], color="#FDE725FF", label="b/r=0.1")
+    plot(data1_noise[:,1], data1_noise[:,3], color="#29AF7FFF", label="b/r=1")
+    plot(data10_noise[:,1], data10_noise[:,3], color="#39568CFF", label="b/r=10")
+    xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
+    ylabel("Mean Transitory Load", fontsize = 15)
+    xticks([0.0, 0.001, 0.002, 0.003, 0.004], fontsize=12)
+    yticks(fontsize=12)
+    legend(fontsize = 12)
+    title("White Noise", fontsize = 15)
+    tight_layout()
+    # return rplusbconstrainedtrackingfigure
+    savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure_meantransitoryload.pdf"))
+end
+
+#Total transitory load
+let 
+    data001_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 0.1, -0.002, 0.1, 10000.0)
+    data1_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 1, -0.002, 0.1, 10000.0)
+    data10_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 10, -0.002, 0.1, 10000.0)
+    data001_noise = brconstrained_stabilitytracking_noise(0.00001:0.0001:0.004, 0.1, -0.002, 1.0, 10000.0, 100)
+    data1_noise = brconstrained_stabilitytracking_noise(0.00001:0.0001:0.004, 1, -0.002, 1.0, 10000.0, 100)
+    data10_noise = brconstrained_stabilitytracking_noise(0.00001:0.0001:0.004, 10, -0.002, 1.0, 10000.0, 100)
+    rplusbconstrainedtrackingfigure = figure(figsize = (5,7))
+    subplot(2,1,1)
+    plot(data001_sine[:,1], data001_sine[:,4], color="#FDE725FF", label="b/r=0.1")
+    plot(data1_sine[:,1], data1_sine[:,4], color="#29AF7FFF", label="b/r=1")
+    plot(data10_sine[:,1], data10_sine[:,4], color="#39568CFF", label="b/r=10")
+    xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
+    ylabel("Total Transitory Load", fontsize = 15)
+    xticks([0.0, 0.001, 0.002, 0.003, 0.004], fontsize=12)
+    yticks(fontsize=12)
+    legend(fontsize = 12)
+    title("Sine Wave", fontsize = 15)
+    subplot(2,1,2)
+    plot(data001_noise[:,1], data001_noise[:,4], color="#FDE725FF", label="b/r=0.1")
+    plot(data1_noise[:,1], data1_noise[:,4], color="#29AF7FFF", label="b/r=1")
+    plot(data10_noise[:,1], data10_noise[:,4], color="#39568CFF", label="b/r=10")
+    xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
+    ylabel("Total Transitory Load", fontsize = 15)
+    xticks([0.0, 0.001, 0.002, 0.003, 0.004], fontsize=12)
+    yticks(fontsize=12)
+    legend(fontsize = 12)
+    title("White Noise", fontsize = 15)
+    tight_layout()
+    # return rplusbconstrainedtrackingfigure
+    savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
+end
+
 
 #Figure
 let 
