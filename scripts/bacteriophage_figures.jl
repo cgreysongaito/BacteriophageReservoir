@@ -169,6 +169,32 @@ let
     # return rplusbconstrainedtrackingfigure
     savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
 end
+
+#Figure
+let 
+    data_increaseb = time_selectionswitch_b(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
+    data_decreaseb = time_selectionswitch_b(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
+    data_increaser = time_selectionswitch_r(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
+    data_decreaser = time_selectionswitch_r(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
+    delayfigure = figure(figsize=(9,7))
+    plot(data_increaseb[1], data_increaseb[2], color="#73D055FF", linewidth = 3, label="Positive (b)")
+    plot(data_decreaseb[1], data_decreaseb[2], color="#440154FF", linewidth = 3, label="Negative (b)")
+    plot(data_increaser[1], data_increaser[2], color="#73D055FF", linewidth = 3, label="Positive (r)", linestyle="dashed")
+    plot(data_decreaser[1], data_decreaser[2], color="#440154FF", linewidth = 3, label="Negative (r)", linestyle="dashed")
+    xticks(fontsize=12)
+    yticks(fontsize=12)
+    xlabel("Bacteriophage level (\$b\$)\nConjugation level (\$r\$)", fontsize = 15)
+    ylabel("Return Time", fontsize = 15)
+    ylim(0.0, 620)
+    legend(title = "Selection Switch", title_fontsize = 15, fontsize = 12)
+    return delayfigure
+    # savefig(joinpath(abpath(), "figs/delay_selectionswitch.pdf"))
+end
+
+
+#Supporting Information
+include("bacteriophage_supportinginformation.jl")
+
 #Mean transitory load
 let 
     data001_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 0.1, -0.002, 0.1, 10000.0)
@@ -237,155 +263,28 @@ let
     savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
 end
 
-
-#Figure
+#Bifurcation analysis
 let 
-    data_increaseb = time_selectionswitch_b(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
-    data_decreaseb = time_selectionswitch_b(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
-    data_increaser = time_selectionswitch_r(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
-    data_decreaser = time_selectionswitch_r(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
-    delayfigure = figure(figsize=(9,7))
-    plot(data_increaseb[1], data_increaseb[2], color="#73D055FF", linewidth = 3, label="Positive (b)")
-    plot(data_decreaseb[1], data_decreaseb[2], color="#440154FF", linewidth = 3, label="Negative (b)")
-    plot(data_increaser[1], data_increaser[2], color="#73D055FF", linewidth = 3, label="Positive (r)", linestyle="dashed")
-    plot(data_decreaser[1], data_decreaser[2], color="#440154FF", linewidth = 3, label="Negative (r)", linestyle="dashed")
-    xticks(fontsize=12)
-    yticks(fontsize=12)
-    xlabel("Bacteriophage level (\$b\$)\nConjugation level (\$r\$)", fontsize = 15)
-    ylabel("Return Time", fontsize = 15)
-    ylim(0.0, 620)
-    legend(title = "Selection Switch", title_fontsize = 15, fontsize = 12)
-    return delayfigure
-    # savefig(joinpath(abpath(), "figs/delay_selectionswitch.pdf"))
-end
-
-
-#Supporting Information
-include("bacteriophage_supportinginformation.jl")
-
-red_noise_midbelow = bifurc_red_mid(0.0:0.1:0.9, -0.004, 6, 100000.0)
-red_noise_midcentred = bifurc_red_mid(0.0:0.1:0.9, -0.002, 6, 100000.0)
-red_noise_midabove = bifurc_red_mid(0.0:0.1:0.9, 0.0, 6, 100000.0)
-
-let 
-    par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=0.0)
-    corrrange = 0.0:0.1:0.9
-    red_noise = figure(figsize=(9,3))
-    subplot(1,3,1)
-    plot(red_noise_midbelow[:, 1], red_noise_midbelow[:, 2], color="black")
-    plot(red_noise_midbelow[:, 1], red_noise_midbelow[:, 3], color="black")
-    xlabel("Noise correlation", fontsize = 15)
-    ylabel("Mean C min & max", fontsize = 15)
-    ylim(0,1.05)
-    yticks([0.0,0.5,1.0], fontsize = 12)
+    bifurcval = bifurc(BacPhagePar())
+    st = -0.3
+    en = 0.3 
+    srange1 = st:0.0001:bifurcval
+    srange2 = bifurcval:0.0001:en
+    data1 = [interior_equil(s, BacPhagePar()) for s in srange1]
+    data2 = [interior_equil(s, BacPhagePar()) for s in srange2]
+    bifurcwlrplot = figure(figsize=(6,5))
+    plot(srange1, data1, color = "black")
+    plot(srange2, data2, linestyle= "dashed",color = "black")
+    ylabel("Ĉ", fontsize = 15)
+    xlabel("s", fontsize = 15)
+    xlim(-0.3, 0.3)
+    ylim(-0.1, 1.1)
     xticks(fontsize = 12)
-    subplot(1,3,2)
-    plot(red_noise_midcentred[:, 1], red_noise_midcentred[:, 2], color="black")
-    plot(red_noise_midcentred[:, 1], red_noise_midcentred[:, 3], color="black")
-    xlabel("Noise correlation", fontsize = 15)
-    ylabel("Mean C min & max", fontsize = 15)
-    ylim(0,1.05)
-    yticks([0.0,0.5,1.0], fontsize = 12)
-    xticks(fontsize = 12)
-    subplot(1,3,3)
-    plot(red_noise_midabove[:, 1], red_noise_midabove[:, 2], color="black")
-    plot(red_noise_midabove[:, 1], red_noise_midabove[:, 3], color="black")
-    xlabel("Noise correlation", fontsize = 15)
-    ylabel("Mean C min & max", fontsize = 15)
-    ylim(0,1.05)
-    yticks([0.0,0.5,1.0], fontsize = 12)
-    xticks(fontsize = 12)
-    tight_layout()
-    return red_noise
-    # savefig(joinpath(abpath(), "figs/rednoise_mid_figure.pdf"))
-end
-
-
-
-
-
-#Figure - Decomposition of conjugation, bacteriophage, and selection "work"
-let 
-    u0=[0.5]
-    tsend = 10000.0
-    freq = 0.1
-    tspan=(0.0, tsend)
-    par = BacPhageSineForcedPar(b = 0.001, r=0.001, per=0.5, amp=0.4, mid=-0.002)
-    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-    sol = solve(prob, RadauIIA5())
-    solseries = sol(tsend-100.0:freq:tsend)
-    conjworkdata = [conjugation(C, par.r) for C in solseries[1, :]]
-    lysoworkdata = [lysogeny(C, par.b) for C in solseries[1,:]]
-    selectiondata = [sel_sine(par, t) for t in tsend-100.0:freq:tsend]
-    selecworkdata = [selection(C, s) for (C,s) in zip(solseries[1,:],selectiondata)]
-    workdecompositionfigure = figure()
-    subplot(2,1,1)
-    plot(solseries.t, lysoworkdata, color="red", label="Bacteriophage")
-    plot(solseries.t, conjworkdata, color="blue", label="Conjugation")
-    ylabel("Work (d/dt)")
-    xlabel("Time")
-    legend()
-    subplot(2,1,2)
-    plot(solseries.t, selecworkdata, color="green", label="Selection")
-    ylabel("Work (d/dt)")
-    xlabel("Time")
-    legend()
-    tight_layout()
-    return workdecompositionfigure
-    # savefig(joinpath(abpath(), "figs/workdecompositionfigure.pdf"))
-end
-
-
-#Figure - HGT and selection work
-let 
-    par = BacPhagePar(s = -0.002)
-    Crange = 0.0:0.01:1.0
-    conj = [conjugation(C, par.r) for C in Crange]
-    bac = [lysogeny(C, par.b) for C in Crange]
-    sel = [selection(C, par.s) for C in Crange]
-    conj_bac = fillbetween_setup(conj, bac)
-    conj_bac_sel = fillbetween_setup(conj_bac, sel)
-    HGTsel_work = figure(figsize=(8,7))
-    # plot(Crange, sel)
-    fill_between(Crange, sel, color="#73D055FF")
-    fill_between(Crange, conj, color="#440154FF")
-    fill_between(Crange, conj, conj_bac, color="#404788FF")
-    ylabel("Total HGT work")
-    xlabel("C")
-    title("s=-0.002")
-    # fill_between(Crange, conj_bac, conj_bac_sel, color="#73D055FF")
-    return HGTsel_work
-    # savefig(joinpath(abpath(), "figs/HGTsel_work_002.pdf"))
-end
-
-#Showing changing b and r change Ĉ=1 eigenvalue in the same way
-let 
-    srange = -0.02:0.01:0.02
-    par  = BacPhageSineForcedPar(b = 0.001)
-    eigenb001 = [eigen1(s, par) for s in srange]
-    eigenb01 = [eigen1(s, BacPhageSineForcedPar(b = 0.01)) for s in srange]
-    eigenb1 = [eigen1(s, BacPhageSineForcedPar(b = 0.1)) for s in srange]
-    eigenr001 = [eigen1(s, BacPhageSineForcedPar(r = 0.001)) for s in srange]
-    eigenr01 = [eigen1(s, BacPhageSineForcedPar(r = 0.01)) for s in srange]
-    eigenr1 = [eigen1(s, BacPhageSineForcedPar(r = 0.1)) for s in srange]
-    eigenfigure = figure(figsize=(7,3))
-    subplot(1,2,1)
-    plot(srange, eigenb001, color="blue", label = "b=0.001", linewidth=3)
-    plot(srange, eigenb01, color="green", label = "b=0.01", linewidth=3)
-    plot(srange, eigenb1, color="red", label = "b=0.1", linewidth=3)
-    xlabel("s")
-    ylabel("λ (Ĉ=1)")
-    legend()
-    subplot(1,2,2)
-    plot(srange, eigenr001, color="blue", label = "r=0.001", linewidth=3)
-    plot(srange, eigenr01, color="green", label = "r=0.01", linewidth=3)
-    plot(srange, eigenr1, color="red", label = "r=0.1", linewidth=3)
-    xlabel("s")
-    ylabel("λ (Ĉ=1)")
-    legend()
-    tight_layout()
-    return eigenfigure
-    # savefig(joinpath(abpath(), "figs/conjbacsel_balance.pdf"))
+    yticks(fontsize = 12)
+    hlines(1.0, st, bifurcval, linestyle= "dashed", colors= "black")
+    hlines(1.0, bifurcval, en, colors= "black")
+    # return bifurcwlrplot
+    savefig(joinpath(abpath(), "figs/SIbifurcfigure.pdf"))
 end
 
 #Eigen integral balancing
@@ -407,9 +306,43 @@ let
     plot(bifurcintegral_data[:, 1], bifurcintegral_data[:, 3], color="black")
     vlines(0.0, 0.0, 1.0, linestyles="dashed", color="black")
     xlabel("λ Integral")
-    ylabel("C min & max")
+    ylabel("C(t) min & max")
     tight_layout()
     return bifurc_integralfigure
     # savefig(joinpath(abpath(), "figs/conjbacsel_balance.pdf"))
 end
 
+#Periodicity
+bifurcmid_data_lowper = bifurcmid_per(-0.01:0.0001:0.001, 0.3, 100000.0)
+bifurcmid_data_normper = bifurcmid_per(-0.01:0.0001:0.001, 0.5, 100000.0)
+bifurcmid_data_highper = bifurcmid_per(-0.01:0.0001:0.001, 0.7, 100000.0)
+let 
+    periodicityplot = figure(figsize=(5,8))
+    subplot(3,1,1)
+    plot(bifurcmid_data_lowper[:, 1], bifurcmid_data_lowper[:, 2], color="black")
+    plot(bifurcmid_data_lowper[:, 1], bifurcmid_data_lowper[:, 3], color="black")
+    vlines(-0.002, 0.0, 1.0, linestyles="dashed", color="black") #bifurc value or r+b=-mid
+    xlabel("Average selection", fontsize = 15)
+    ylabel("C(t) min & max", fontsize = 15)
+    yticks([0.0, 0.5,1.0], fontsize = 12)
+    xticks([-0.010, -0.002, 0.0], fontsize = 12)
+    subplot(3,1,2)
+    plot(bifurcmid_data_normper[:, 1], bifurcmid_data_normper[:, 2], color="black")
+    plot(bifurcmid_data_normper[:, 1], bifurcmid_data_normper[:, 3], color="black")
+    vlines(-0.002, 0.0, 1.0, linestyles="dashed", color="black") #bifurc value or r+b=-mid
+    xlabel("Average selection", fontsize = 15)
+    ylabel("C(t) min & max", fontsize = 15)
+    yticks([0.0, 0.5,1.0], fontsize = 12)
+    xticks([-0.010, -0.002, 0.0], fontsize = 12)
+    subplot(3,1,3)
+    plot(bifurcmid_data_highper[:, 1], bifurcmid_data_highper[:, 2], color="black")
+    plot(bifurcmid_data_highper[:, 1], bifurcmid_data_highper[:, 3], color="black")
+    vlines(-0.002, 0.0, 1.0, linestyles="dashed", color="black") #bifurc value or r+b=-mid
+    xlabel("Average selection", fontsize = 15)
+    ylabel("C(t) min & max", fontsize = 15)
+    yticks([0.0, 0.5,1.0], fontsize = 12)
+    xticks([-0.010, -0.002, 0.0], fontsize = 12)
+    tight_layout()
+    # return periodicityplot
+    savefig(joinpath(abpath(), "figs/SIperiodicityplot.pdf"))
+end

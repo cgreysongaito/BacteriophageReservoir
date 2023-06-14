@@ -107,7 +107,7 @@ end
     r = 0.001 #changed to neihus parameter
     b = 0.001
     per = 0.5
-    amp = 1.0
+    amp = 0.4
     mid = 0.0
     selec::Function = sel_sine
 end

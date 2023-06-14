@@ -1,12 +1,11 @@
-#Sine wave
 #"bifurcations" changing mid
+#Sine wave
 function bifurcmid(midrange, tsend)
     data = zeros(length(midrange), 3)
     u0=[0.5]
     tspan=(0.0, tsend)
     @threads for midi in eachindex(midrange)
-        par = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=midrange[midi])
-        par.mid = midrange[midi]
+        par = BacPhageSineForcedPar(mid=midrange[midi])
         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
         sol = solve(prob, RadauIIA5())
         solseries = sol(tsend-1000:1.0:tsend)
@@ -17,7 +16,7 @@ function bifurcmid(midrange, tsend)
     return data
 end
 
-#Noise
+#White Noise
 
 function noise_mid_reps(μ, corr, reps, tend)
     maxC = zeros(reps)
@@ -29,9 +28,6 @@ function noise_mid_reps(μ, corr, reps, tend)
     end
     return [mean(maxC), mean(minC)]
 end
-
-
-#White noise
 
 function bifurc_white_mid(midrange, reps, tend)
     data = zeros(length(midrange), 3)
