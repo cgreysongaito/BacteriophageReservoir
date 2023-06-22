@@ -138,9 +138,9 @@ end
 #Final figure (tracking)
 
 let 
-    data001_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 0.1, -0.002, 0.1, 10000.0)
-    data1_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 1, -0.002, 0.1, 10000.0)
-    data10_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 10, -0.002, 0.1, 10000.0)
+    data001_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 0.1, -0.002, 0.01, 10000.0)
+    data1_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 1, -0.002, 0.001, 10000.0)
+    data10_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 10, -0.002, 0.001, 10000.0)
     data001_noise = brconstrained_stabilitytracking_noise(0.00001:0.0001:0.004, 0.1, -0.002, 1.0, 10000.0, 100)
     data1_noise = brconstrained_stabilitytracking_noise(0.00001:0.0001:0.004, 1, -0.002, 1.0, 10000.0, 100)
     data10_noise = brconstrained_stabilitytracking_noise(0.00001:0.0001:0.004, 10, -0.002, 1.0, 10000.0, 100)
@@ -166,8 +166,8 @@ let
     legend(fontsize = 12)
     title("White Noise", fontsize = 15)
     tight_layout()
-    # return rplusbconstrainedtrackingfigure
-    savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
+    return rplusbconstrainedtrackingfigure
+    # savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
 end
 
 #Figure
@@ -227,6 +227,37 @@ let
     tight_layout()
     # return rplusbconstrainedtrackingfigure
     savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure_meantransitoryload.pdf"))
+end
+
+#understanding why mean transitory load is between 0.4990 and 0.5010
+function brconstrained_stabilitytracking_sine_test(bplusr, brratio, smid, freq, tsend)
+    u0=[0.5]
+    tspan=(0.0, tsend)
+    rval = bplusr/(1+brratio)
+    bval = bplusr - rval
+    par = BacPhageSineForcedPar(b = bval, r=rval, per=0.5, amp=0.4, mid=smid)
+    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+    sol = solve(prob, RadauIIA5())
+    solseries = sol(tsend-1000.0:freq:tsend)
+    selectiondata = [sel_sine(par, t) for t in tsend-1000.0:freq:tsend]
+    seriesoptimum = optimum(selectiondata)
+    optimumdiff = trackoptimum(solseries[1,:], seriesoptimum)
+    return optimumdiff
+end
+
+test = brconstrained_stabilitytracking_sine_test(0.003, 0.1, -0.002, 0.1, 10000.0)
+length(test)
+
+let 
+    data1= brconstrained_stabilitytracking_sine_test(0.003, 0.001, -0.002, 0.1, 10000.0)
+    println(mean(data1))
+    data2= brconstrained_stabilitytracking_sine_test(0.0005, 0.001, -0.002, 0.1, 10000.0)
+    println(mean(data2))
+    test = figure()
+    plot(1.0:1.0:Float64(length(data1)), data1)
+    plot(1.0:1.0:Float64(length(data2)), data2)
+    xlim(9800, 10000)
+    return test 
 end
 
 #Total transitory load
