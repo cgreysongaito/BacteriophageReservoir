@@ -299,12 +299,12 @@ let
     plot(data_decreaser[1], data_decreaser[2], color="#440154FF", linewidth = 3, label="Negative (r)", linestyle="dashed")
     xticks(fontsize=12)
     yticks(fontsize=12)
-    xlabel("Bacteriophage level (\$b\$)\nConjugation level (\$r\$)", fontsize = 15)
-    ylabel("Return Time", fontsize = 15)
+    xlabel("Bacteriophage rate (\$b\$)\nConjugation rate (\$r\$)", fontsize = 15)
+    ylabel("Transitory load minimization time", fontsize = 15)
     ylim(0.0, 620)
-    legend(title = "Selection Switch", title_fontsize = 15, fontsize = 12)
-    return delayfigure
-    # savefig(joinpath(abpath(), "figs/delay_selectionswitch.pdf"))
+    legend(title = "Optimum C Switch", title_fontsize = 15, fontsize = 12)
+    # return delayfigure
+    savefig(joinpath(abpath(), "figs/delay_selectionswitch.pdf"))
 end
 
 
