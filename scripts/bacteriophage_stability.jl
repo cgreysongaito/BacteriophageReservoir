@@ -139,6 +139,31 @@ function brconstrained_stabilitytracking_noise(bplusrrange, brratio, smid, freq,
     return data
 end
 
+#geometric proof that increasing HGT increases integral between selection amplitude with the same shape as mean transitory load
+let 
+    bifurcval1 = bifurc(BacPhagePar(b=0.0001, r=0.0001))
+    bifurcval2 = bifurc(BacPhagePar(b=0.0015, r=0.0015))
+    st = -0.4
+    en = 0.4 
+    srange1 = st:0.0001:bifurcval1
+    srange2 = st:0.0001:bifurcval2
+    data1 = [interior_equil(s, BacPhagePar(b=0.0001, r=0.0001)) for s in srange1]
+    data2 = [interior_equil(s, BacPhagePar(b=0.0015, r=0.0015)) for s in srange2]
+    bifurcwlrplot = figure(figsize=(6,5))
+    plot(srange1, data1, color = "black")
+    plot(srange2, data2, color = "green")
+    hlines(1.0, st, en, colors= "black")
+    vlines(0.00, 0.0, 1.0, colors="blue")
+    ylabel("Ĉ", fontsize = 15)
+    xlabel("s", fontsize = 15)
+    xlim(-0.1, 0.1)
+    ylim(-0.01, 1.01)
+    xticks(fontsize = 12)
+
+    return bifurcwlrplot
+    # savefig(joinpath(abpath(), "figs/SIbifurcfigure.pdf"))
+end
+
 #time taken to reach new equilibrium after switch in selection for different values of b
 function calc_time_selectionswitch(bval, rval, oldsel, newsel, tvals)
     solseries = selection_switch_bacphage(bval, rval, oldsel, newsel, tvals)
