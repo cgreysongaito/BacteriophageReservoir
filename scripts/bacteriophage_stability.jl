@@ -37,15 +37,20 @@ function sumsqddiff(data)
     return sum(sqddiff)
 end
 
+function brratio_calc(brratio, bplusr)
+    rval = bplusr/(1+brratio)
+    bval = bplusr - rval
+    return [bval, rval]
+end
+
 function brconstrained_stabilitytracking_sine(bplusrrange, brratio, smid, freq, numsine)
     data = zeros(length(bplusrrange), 4)
     u0=[0.5]
     tsend = numsine*4*pi
     tspan=(0.0, tsend)
     @threads for bri in eachindex(bplusrrange)
-        rval = bplusrrange[bri]/(1+brratio)
-        bval = bplusrrange[bri] - rval
-        par = BacPhageSineForcedPar(b = bval, r=rval, per=0.5, amp=0.4, mid=smid)
+        brvals = brratio_calc(brratio, bplusrrange[bri])
+        par = BacPhageSineForcedPar(b = brvals[1], r=brvals[2], per=0.5, amp=0.4, mid=smid)
         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
         sol = solve(prob, RadauIIA5())
         solseries = sol(tsend-4*pi:freq:tsend)
@@ -84,31 +89,31 @@ function splitoptimumdiff(optimum, optimumdiffdata, selectiondata)
     return [optimumdiffdata[i] for i in indexes]
 end
 
-function brconstrained_stepwisestabilitytracking_sine(bplusrrange, brratio, smid, freq, numsine)
-    data = zeros(length(bplusrrange), 5)
-    u0=[0.5]
-    tsend = numsine*4*pi
-    tspan=(0.0, tsend)
-    @threads for bri in eachindex(bplusrrange)
-        rval = bplusrrange[bri]/(1+brratio)
-        bval = bplusrrange[bri] - rval
-        par = BacPhageSineForcedPar(b = bval, r=rval, per=0.5, amp=0.4, mid=smid)
-        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, RadauIIA5())
-        solseries = sol(tsend-4*pi:freq:tsend)
-        selectiondata = [sel_sine(par, t) for t in tsend-4*pi:freq:tsend]
-        seriesoptimum = optimum(selectiondata)
-        optimumdiff = trackoptimum(solseries[1,:], seriesoptimum)
-        optimumdiff0 = splitoptimumdiff("0", optimumdiff, selectiondata)
-        optimumdiff1 = splitoptimumdiff("1", optimumdiff, selectiondata)
-        data[bri, 1] = bplusrrange[bri]
-        data[bri, 2] = mean(optimumdiff0)
-        data[bri, 3] = sumsqddiff(optimumdiff0)
-        data[bri, 4] = mean(optimumdiff1)
-        data[bri, 5] = sumsqddiff(optimumdiff1)
-    end
-    return data
-end
+# function brconstrained_stepwisestabilitytracking_sine(bplusrrange, brratio, smid, freq, numsine)
+#     data = zeros(length(bplusrrange), 5)
+#     u0=[0.5]
+#     tsend = numsine*4*pi
+#     tspan=(0.0, tsend)
+#     @threads for bri in eachindex(bplusrrange)
+#         rval = bplusrrange[bri]/(1+brratio)
+#         bval = bplusrrange[bri] - rval
+#         par = BacPhageSineForcedPar(b = bval, r=rval, per=0.5, amp=0.4, mid=smid)
+#         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+#         sol = solve(prob, RadauIIA5())
+#         solseries = sol(tsend-4*pi:freq:tsend)
+#         selectiondata = [sel_sine(par, t) for t in tsend-4*pi:freq:tsend]
+#         seriesoptimum = optimum(selectiondata)
+#         optimumdiff = trackoptimum(solseries[1,:], seriesoptimum)
+#         optimumdiff0 = splitoptimumdiff("0", optimumdiff, selectiondata)
+#         optimumdiff1 = splitoptimumdiff("1", optimumdiff, selectiondata)
+#         data[bri, 1] = bplusrrange[bri]
+#         data[bri, 2] = mean(optimumdiff0)
+#         data[bri, 3] = sumsqddiff(optimumdiff0)
+#         data[bri, 4] = mean(optimumdiff1)
+#         data[bri, 5] = sumsqddiff(optimumdiff1)
+#     end
+#     return data
+# end
 
 function noise_stabilityprep(bval, rval, smid, freq, tsend, reps)
     CVTLdata = zeros(length(reps))
@@ -128,40 +133,14 @@ end
 function brconstrained_stabilitytracking_noise(bplusrrange, brratio, smid, freq, tsend, reps)
     data = zeros(length(bplusrrange), 4)
     @threads for bri in eachindex(bplusrrange)
-        rval = bplusrrange[bri]/(1+brratio)
-        bval = bplusrrange[bri] - rval
-        TLstats = noise_stabilityprep(bval, rval, smid, freq, tsend, reps)
+        brvals = brratio_calc(brratio, bplusrrange[bri])
+        TLstats = noise_stabilityprep(brvals[1], brvals[2], smid, freq, tsend, reps)
         data[bri, 1] = bplusrrange[bri]
         data[bri, 2] = TLstats[1]
         data[bri, 3] = TLstats[2]
         data[bri, 4] = TLstats[3]
     end
     return data
-end
-
-#geometric proof that increasing HGT increases integral between selection amplitude with the same shape as mean transitory load
-let 
-    bifurcval1 = bifurc(BacPhagePar(b=0.0001, r=0.0001))
-    bifurcval2 = bifurc(BacPhagePar(b=0.0015, r=0.0015))
-    st = -0.4
-    en = 0.4 
-    srange1 = st:0.0001:bifurcval1
-    srange2 = st:0.0001:bifurcval2
-    data1 = [interior_equil(s, BacPhagePar(b=0.0001, r=0.0001)) for s in srange1]
-    data2 = [interior_equil(s, BacPhagePar(b=0.0015, r=0.0015)) for s in srange2]
-    bifurcwlrplot = figure(figsize=(6,5))
-    plot(srange1, data1, color = "black")
-    plot(srange2, data2, color = "green")
-    hlines(1.0, st, en, colors= "black")
-    vlines(0.00, 0.0, 1.0, colors="blue")
-    ylabel("Ĉ", fontsize = 15)
-    xlabel("s", fontsize = 15)
-    xlim(-0.1, 0.1)
-    ylim(-0.01, 1.01)
-    xticks(fontsize = 12)
-
-    return bifurcwlrplot
-    # savefig(joinpath(abpath(), "figs/SIbifurcfigure.pdf"))
 end
 
 #time taken to reach new equilibrium after switch in selection for different values of b

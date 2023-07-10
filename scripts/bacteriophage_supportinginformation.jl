@@ -16,6 +16,18 @@ function bifurcintegral_eigen1_mid(midrange, tsend)
     return data
 end
 
+# lowest C equilibrium analysis for mean transitory load
+function meanTL_lowestC(bplusrrange, brratio, slow)
+    data = zeros(length(bplusrrange), 2)
+    @threads for bri in eachindex(bplusrrange)
+        brvals = brratio_calc(brratio, bplusrrange[bri])
+        par = BacPhagePar(b = brvals[1], r=brvals[2])
+        data[bri, 1] = bplusrrange[bri]
+        data[bri, 2] = interior_equil(slow, par)
+    end
+    return data
+end
+
 #Different periodicities and amplitudes
 #test of bifurcmid with different periodicity (because model without bac is dependent on periodicity) - ANSWER - periodicity does not affect "bifurcation" point
 function bifurcmid_per(midrange, perval, tsend)
