@@ -1,6 +1,5 @@
 include("packages.jl")
 include("bacteriophage_commoncode.jl")
-include("bacteriophage_gutresponses.jl")
 include("bacteriophage_stability.jl")
 
 #Figure 2 (Stability Schematic)
@@ -56,7 +55,7 @@ end
 
 ##Stability of Gut Function
 
-#Mean transitory load
+#Figure 3 Mean transitory load
 let 
     data001_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 0.1, -0.002, 0.01, 500.0)
     data1_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 1, -0.002, 0.01, 500.0)
@@ -90,19 +89,7 @@ let
     savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure_meantransitoryload.pdf"))
 end
 
-#understanding why mean transitory load is between 0.4990 and 0.5010
-let 
-    selectiondata = [sin(t)-0.002 for t in 0.0:0.0001:2*pi]
-    seriesoptimum1 = abs.(1.0 .- filter(!isnan, optimum(selectiondata)))
-    seriesoptimum0 = abs.(0.0 .- filter(!isnan, optimum(selectiondata)))
-    println(mean(seriesoptimum1))
-    println(mean(seriesoptimum0))
-    # test = figure()
-    # plot(0:0.1:2*pi, selectiondata)
-    # plot(0:0.1:2*pi, seriesoptimum)
-end
-
-#Fluctuations of transitory load
+#Figure 4 Fluctuations of transitory load
 let 
     data001_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 0.1, -0.002, 0.001, 500.0)
     data1_sine = brconstrained_stabilitytracking_sine(0.00001:0.0001:0.004, 1, -0.002, 0.001, 500.0)
@@ -136,63 +123,13 @@ let
     savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
 end
 
-# let 
-#     data001_sine = brconstrained_stepwisestabilitytracking_sine(0.00001:0.0001:0.004, 0.1, -0.002, 0.001, 10000.0)
-#     data1_sine = brconstrained_stepwisestabilitytracking_sine(0.00001:0.0001:0.004, 1, -0.002, 0.001, 10000.0)
-#     data10_sine = brconstrained_stepwisestabilitytracking_sine(0.00001:0.0001:0.004, 10, -0.002, 0.001, 10000.0)
-#     rplusbconstrainedtrackingfigure = figure(figsize = (10,10))
-#     subplot(2,2,1)
-#     plot(data001_sine[:,1], data001_sine[:,2], color="#FDE725FF", label="b/r=0.1")
-#     plot(data1_sine[:,1], data1_sine[:,2], color="#29AF7FFF", label="b/r=1")
-#     plot(data10_sine[:,1], data10_sine[:,2], color="#39568CFF", label="b/r=10")
-#     xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
-#     ylabel("Mean Transitory Load", fontsize = 15)
-#     xticks([0.0, 0.001, 0.002, 0.003, 0.004], fontsize=12)
-#     yticks(fontsize=12)
-#     legend(fontsize = 12)
-#     title("0 Optimum", fontsize = 15)
-#     subplot(2,2,2)
-#     plot(data001_sine[:,1], data001_sine[:,3], color="#FDE725FF", label="b/r=0.1")
-#     plot(data1_sine[:,1], data1_sine[:,3], color="#29AF7FFF", label="b/r=1")
-#     plot(data10_sine[:,1], data10_sine[:,3], color="#39568CFF", label="b/r=10")
-#     xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
-#     ylabel("Transitory Load FLuctuation", fontsize = 15)
-#     xticks([0.0, 0.001, 0.002, 0.003, 0.004], fontsize=12)
-#     yticks(fontsize=12)
-#     legend(fontsize = 12)
-#     title("0 Optimum", fontsize = 15)
-#     subplot(2,2,3)
-#     plot(data001_sine[:,1], data001_sine[:,4], color="#FDE725FF", label="b/r=0.1")
-#     plot(data1_sine[:,1], data1_sine[:,4], color="#29AF7FFF", label="b/r=1")
-#     plot(data10_sine[:,1], data10_sine[:,4], color="#39568CFF", label="b/r=10")
-#     xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
-#     ylabel("Mean Transitory Load", fontsize = 15)
-#     xticks([0.0, 0.001, 0.002, 0.003, 0.004], fontsize=12)
-#     yticks(fontsize=12)
-#     legend(fontsize = 12)
-#     title("1 Optimum", fontsize = 15)
-#     subplot(2,2,4)
-#     plot(data001_sine[:,1], data001_sine[:,5], color="#FDE725FF", label="b/r=0.1")
-#     plot(data1_sine[:,1], data1_sine[:,5], color="#29AF7FFF", label="b/r=1")
-#     plot(data10_sine[:,1], data10_sine[:,5], color="#39568CFF", label="b/r=10")
-#     xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
-#     ylabel("Transitory Load FLuctuation", fontsize = 15)
-#     xticks([0.0, 0.001, 0.002, 0.003, 0.004], fontsize=12)
-#     yticks(fontsize=12)
-#     legend(fontsize = 12)
-#     title("1 Optimum", fontsize = 15)
-#     tight_layout()
-#     return rplusbconstrainedtrackingfigure
-#     # savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
-# end
-
-#Figure
+#Figure 5
 let 
     data_increaseb = time_selectionswitch_b(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
     data_decreaseb = time_selectionswitch_b(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
     data_increaser = time_selectionswitch_r(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
     data_decreaser = time_selectionswitch_r(0.0001:0.0001:0.01, 0.01, -0.05, 0.0:1.0:10000.0)
-    delayfigure = figure(figsize=(9,7))
+    TLmintime = figure(figsize=(9,7))
     plot(data_increaseb[1], data_increaseb[2], color="#73D055FF", linewidth = 3, label="Positive (b)")
     plot(data_decreaseb[1], data_decreaseb[2], color="#440154FF", linewidth = 3, label="Negative (b)")
     plot(data_increaser[1], data_increaser[2], color="#73D055FF", linewidth = 3, label="Positive (r)", linestyle="dashed")
@@ -203,13 +140,15 @@ let
     ylabel("Transitory load minimization time", fontsize = 15)
     ylim(0.0, 620)
     legend(title = "Optimum C Switch", title_fontsize = 15, fontsize = 12)
-    # return delayfigure
-    savefig(joinpath(abpath(), "figs/delay_selectionswitch.pdf"))
+    # return TLmintime
+    savefig(joinpath(abpath(), "figs/TLmintime_selectionswitch.pdf"))
 end
 
 
 #Supporting Information
 include("bacteriophage_supportinginformation.jl")
+
+#Balance of selection, conjugation, and bacteriophage transduction
 
 #Bifurcation analysis of varying s
 let 
@@ -341,7 +280,7 @@ let
     data01 = meanTL_lowestC(bplusrrange, 0.1, slow)
     data1 = meanTL_lowestC(bplusrrange, 1, slow)
     data10 = meanTL_lowestC(bplusrrange, 10, slow)
-    lowestCplot = figure()
+    lowestCplot = figure(figsize=(7,5))
     plot(data01[:,1], data01[:,2], color="#FDE725FF", label="b/r=0.1")
     plot(data1[:,1], data1[:,2], color="#29AF7FFF", label="b/r=1")
     plot(data01[:,1], data10[:,2], color="#39568CFF", label="b/r=10")
