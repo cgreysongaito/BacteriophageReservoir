@@ -24,6 +24,11 @@ Christopher J. Greyson-Gaito<sup>*1.</sup>, Jacob Wilde<sup>2.</sup>, Cortland K
 * figs &ndash; empty folder for figures to be placed (created in bacteriophage_figures.jl)
 * scripts
     * packages.jl &ndash; list of packages required (file used in other scripts)
+    * bacteriophage_commoncode.jl &ndash; code that is needed across all other scripts
+    * bacteriophage_stability.jl &ndash; code to calculate gut function stability
+    * bacteriophage_supportinginformation.jl &ndash; code to set up the data needed in the figures of the supporting information
+    * bacteriophage _symbolicanalysis.jl &ndash; code to calculate equilibria and eigenvalues
+    * bacteriophage_figures.jl &ndash; code to produce all figures
 * .gitignore &ndash; file containing files and folders that git should ignore
 * LICENSE.txt &ndash; CC by 4.0 License for this repository
 * README.md &ndash; this file
@@ -33,5 +38,4 @@ Christopher J. Greyson-Gaito<sup>*1.</sup>, Jacob Wilde<sup>2.</sup>, Cortland K
 1. Download the GitHub/Zenodo repo
 2. Open the repo in Visual Studio Code (if you haven't already done so, set up [Julia in Visual Studio Code](https://www.julia-vscode.org/))
 3. Most of the analysis here requires multiple cores. Thus to set up multiple cores on your computer, in Visual Studio Code find the Julia: Num Threads setting in the Extension Settings of the Visual Studio Code Julia Extension. Change this setting to at most the number of logical cores in your computer. Restart Julia. All parallel computing will run automatically regardless of the number of cores selected.
-
-5. Run bacteriophage_figures.jl to produce the figures in the manuscript.
+4. Run bacteriophage_figures.jl to produce the figures in the manuscript.
