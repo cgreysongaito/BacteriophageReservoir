@@ -54,7 +54,7 @@ function brconstrained_stabilitytracking_sine(bplusrrange, brratio, smid, freq, 
         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
         sol = solve(prob, RadauIIA5())
         solseries = sol(tsend-4*pi:freq:tsend)
-        selectiondata = [sel_sine(par, t) for t in tsend-8*pi:freq:tsend]
+        selectiondata = [sel_sine(par, t) for t in tsend-4*pi:freq:tsend]
         seriesoptimum = optimum(selectiondata)
         optimumdiff = trackoptimum(solseries[1,:], seriesoptimum)
         data[bri, 1] = bplusrrange[bri]

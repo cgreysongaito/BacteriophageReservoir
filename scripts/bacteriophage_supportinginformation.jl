@@ -1,3 +1,43 @@
+include("bacteriophage_commoncode.jl")
+
+#Parameter ranges
+include("bacteriophage_stability.jl")
+
+function range_parameter_br(brratio, bplusrrange)
+    brange = zeros(length(bplusrrange))
+    rrange = zeros(length(bplusrrange))
+    @threads for bri in eachindex(bplusrrange)
+        br = brratio_calc(brratio, bplusrrange[bri])
+        brange[bri] = br[1]
+        rrange[bri] = br[2]
+    end
+    minb = minimum(brange)
+    maxb = maximum(brange)
+    minr = minimum(rrange)
+    maxr = maximum(rrange)
+    return hcat(minb, maxb, minr, maxr)
+end
+
+range_parameter_br(0.1, 0.00001:0.0001:0.003)
+range_parameter_br(1.0, 0.00001:0.0001:0.003)
+range_parameter_br(10.0, 0.00001:0.0001:0.003)
+
+0.4*sin(π/2)-0.002
+-0.4*sin(π/2)-0.002
+
+function sel_noise_range(reps)
+    mins = zeros(reps)
+    maxs = zeros(reps)
+    @threads for i in 1:reps
+        noisedata = noise_creation(-0.002, 0.05, 0.0, 1000, i)
+        mins[i] = minimum(noisedata)
+        maxs[i] = maximum(noisedata)
+    end
+    return [minimum(mins), maximum(maxs)]
+end
+
+sel_noise_range(1000000)
+
 #Gut responses to environmental variation
 #Sine wave
 function bifurcmid(midrange, tsend)
