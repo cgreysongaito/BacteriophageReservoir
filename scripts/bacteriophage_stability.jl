@@ -43,6 +43,16 @@ function brratio_calc(brratio, bplusr)
     return [bval, rval]
 end
 
+function sel_rel_conj(brratio, bplusrrange, avabssel)
+    alphadata = zeros(length(bplusrrange))
+    @threads for i in eachindex(bplusrrange)
+        rval = brratio_calc(brratio, bplusrrange[i])[2]
+        alphadata[i] = avabssel/rval
+    end
+    return hcat(bplusrrange, alphadata)
+end
+
+
 function brconstrained_stabilitytracking_sine(bplusrrange, brratio, smid, freq, numsine)
     data = zeros(length(bplusrrange), 4)
     u0=[0.5]

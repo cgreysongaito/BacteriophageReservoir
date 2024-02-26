@@ -123,6 +123,23 @@ let
     # savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
 end
 
+sel_rel_conj(0.1, 0.00001:0.00001:0.001, -0.0005 )[:,1]
+
+let 
+    bplusrrange = 0.00001:0.00001:0.001
+    avabssel = -0.0005
+    alpha001data = sel_rel_conj(0.1, bplusrrange, avabssel)
+    alpha1data = sel_rel_conj(1.0, bplusrrange, avabssel)
+    alpha10data = sel_rel_conj(10.0, bplusrrange, avabssel)
+    test = figure()
+    plot(alpha001data[:,1],alpha001data[:,2], color="blue")
+    plot(alpha1data[:,1],alpha1data[:,2], color="red")
+    plot(alpha10data[:,1],alpha10data[:,2], color="orange")
+    xlabel("HGT")
+    ylabel("α")
+    return test
+end
+
 #Figure 5
 let 
     data_increaseb = time_selectionswitch_b(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
