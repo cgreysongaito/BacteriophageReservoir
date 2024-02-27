@@ -52,6 +52,15 @@ function sel_rel_conj(brratio, bplusrrange, avabssel)
     return hcat(bplusrrange, alphadata)
 end
 
+function bifurc_consrelsel(brratio, bplusrrange, αval)
+    rsbdata=zeros(length(bplusrrange))
+    @threads for i in eachindex(bplusrrange)
+        brval = brratio_calc(brratio, bplusrrange[i])
+        rsbdata[i] = brval[2]*(1+αval) + brval[1]
+    end
+    return hcat(bplusrrange, rsbdata)
+end
+
 
 function brconstrained_stabilitytracking_sine(bplusrrange, brratio, smid, freq, numsine)
     data = zeros(length(bplusrrange), 4)

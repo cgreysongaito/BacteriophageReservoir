@@ -140,6 +140,38 @@ let
     return test
 end
 
+bifurc_consrelsel(10.0, 0.00001:0.00001:0.001, -50.0)
+
+let 
+    bplusrrange = 0.00001:0.00001:0.001
+    αval = -50.0
+    bifurc001data = bifurc_consrelsel(0.1, bplusrrange, αval)
+    bifurc1data = bifurc_consrelsel(1.0, bplusrrange, αval)
+    bifurc10data = bifurc_consrelsel(10.0, bplusrrange, αval)
+    test = figure()
+    plot(bifurc001data[:,1],bifurc001data[:,2], color="blue")
+    plot(bifurc1data[:,1],bifurc1data[:,2], color="red")
+    plot(bifurc10data[:,1],bifurc10data[:,2], color="orange")
+    xlabel("HGT")
+    ylabel("r+s+b")
+    return test
+end
+
+let 
+    bplusrrange = 0.00001:0.00001:0.001
+    αval = -0.5
+    bifurc001data = bifurc_consrelsel(0.1, bplusrrange, αval)
+    bifurc1data = bifurc_consrelsel(1.0, bplusrrange, αval)
+    bifurc10data = bifurc_consrelsel(10.0, bplusrrange, αval)
+    test = figure()
+    plot(bifurc001data[:,1],bifurc001data[:,2], color="blue")
+    plot(bifurc1data[:,1],bifurc1data[:,2], color="red")
+    plot(bifurc10data[:,1],bifurc10data[:,2], color="orange")
+    xlabel("HGT")
+    ylabel("r+s+b")
+    return test
+end
+
 #Figure 5
 let 
     data_increaseb = time_selectionswitch_b(0.0001:0.0001:0.01, -0.05, 0.01, 0.0:1.0:10000.0)
