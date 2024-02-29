@@ -84,11 +84,11 @@ function brconstrained_stabilitytracking_sine(bplusrrange, brratio, smid, freq, 
     return data
 end
 
-function stepwise_indexes(selectiondata)
+function stepwise_indexes(optimumdata)
     optimum0 = []
     optimum1 = []
-    for i in eachindex(selectiondata)
-        if selectiondata[i] >= 0.0
+    for i in eachindex(optimumdata)
+        if optimumdata[i] > 0.0
             append!(optimum1, i)
         else
             append!(optimum0, i)
@@ -97,15 +97,40 @@ function stepwise_indexes(selectiondata)
     return [optimum0, optimum1]
 end
 
-function splitoptimumdiff(optimum, optimumdiffdata, selectiondata)
+function splitoptimumdiff(optimum, optimumdiffdata, optimumdata)
     if optimum == "1"
-        indexes = stepwise_indexes(selectiondata)[2]
+        indexes = stepwise_indexes(optimumdata)[2]
     elseif optimum =="0"
-        indexes = stepwise_indexes(selectiondata)[1]
+        indexes = stepwise_indexes(optimumdata)[1]
     else
         error("optimum should be either 1 or 0")
     end
     return [optimumdiffdata[i] for i in indexes]
+end
+
+function brconstrained_stabilitytracking_sine_splitoptimum(bplusrrange, brratio, smid, freq, numsine)
+    data = zeros(length(bplusrrange), 5)
+    u0=[0.5]
+    tsend = numsine*4*pi
+    tspan=(0.0, tsend)
+    @threads for bri in eachindex(bplusrrange)
+        brvals = brratio_calc(brratio, bplusrrange[bri])
+        par = BacPhageSineForcedPar(b = brvals[1], r=brvals[2], per=0.5, amp=0.4, mid=smid)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+        sol = solve(prob, RadauIIA5())
+        solseries = sol(tsend-4*pi:freq:tsend)
+        selectiondata = [sel_sine(par, t) for t in tsend-4*pi:freq:tsend]
+        seriesoptimum = optimum(selectiondata)
+        optimumdiff = trackoptimum(solseries[1,:], seriesoptimum)
+        optimumdiff0 = splitoptimumdiff("0", optimumdiff, seriesoptimum)
+        optimumdiff1 = splitoptimumdiff("1", optimumdiff, seriesoptimum)
+        data[bri, 1] = bplusrrange[bri]
+        data[bri, 2] = mean(optimumdiff0)
+        data[bri, 3] = sumsqddiff(optimumdiff0)
+        data[bri, 4] = mean(optimumdiff1)
+        data[bri, 5] = sumsqddiff(optimumdiff1)
+    end
+    return data
 end
 
 function noise_stabilityprep(bval, rval, smid, freq, tsend, reps)

@@ -123,6 +123,58 @@ let
     # savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
 end
 
+brconstrained_stabilitytracking_sine_splitoptimum(bplusrrange, brratio, smid, freq, numsine)(bplusrrange, brratio, smid, freq, numsine)
+let 
+    data001_sine = brconstrained_stabilitytracking_sine_splitoptimum(0.00001:0.00001:0.001, 0.1, -0.0005, 0.001, 500.0)
+    data1_sine = brconstrained_stabilitytracking_sine_splitoptimum(0.00001:0.00001:0.001, 1, -0.0005, 0.001, 500.0)
+    data10_sine = brconstrained_stabilitytracking_sine_splitoptimum(0.00001:0.00001:0.001, 10, -0.0005, 0.001, 500.0)
+    rplusbconstrainedtrackingfigure = figure(figsize = (8,7))
+    subplot(2,2,1)
+    plot(data001_sine[:,1], data001_sine[:,2], color="#FDE725FF", label="b/r=0.1")
+    plot(data1_sine[:,1], data1_sine[:,2], color="#29AF7FFF", label="b/r=1")
+    plot(data10_sine[:,1], data10_sine[:,2], color="#39568CFF", label="b/r=10")
+    xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
+    ylabel("Mean Transitory Load", fontsize = 15)
+    xticks([0.0, 0.001], fontsize=12)
+    yticks(fontsize=12)
+    legend(fontsize = 12)
+    title("Optimum C = 0", fontsize = 15)
+    subplot(2,2,2)
+    plot(data001_sine[:,1], data001_sine[:,3], color="#FDE725FF", label="b/r=0.1")
+    plot(data1_sine[:,1], data1_sine[:,3], color="#29AF7FFF", label="b/r=1")
+    plot(data10_sine[:,1], data10_sine[:,3], color="#39568CFF", label="b/r=10")
+    xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
+    ylabel("Transitory Load Fluctuation", fontsize = 15)
+    xticks([0.00001, 0.0005, 0.001], fontsize=12)
+    yticks(fontsize=12)
+    legend(fontsize = 12)
+    title("Optimum C = 0", fontsize = 15)
+    subplot(2,2,3)
+    plot(data001_sine[:,1], data001_sine[:,4], color="#FDE725FF", label="b/r=0.1")
+    plot(data1_sine[:,1], data1_sine[:,4], color="#29AF7FFF", label="b/r=1")
+    plot(data10_sine[:,1], data10_sine[:,4], color="#39568CFF", label="b/r=10")
+    xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
+    ylabel("Mean Transitory Load", fontsize = 15)
+    xticks([0.0, 0.001], fontsize=12)
+    yticks(fontsize=12)
+    legend(fontsize = 12)
+    title("Optimum C = 1", fontsize = 15)
+    subplot(2,2,4)
+    plot(data001_sine[:,1], data001_sine[:,5], color="#FDE725FF", label="b/r=0.1")
+    plot(data1_sine[:,1], data1_sine[:,5], color="#29AF7FFF", label="b/r=1")
+    plot(data10_sine[:,1], data10_sine[:,5], color="#39568CFF", label="b/r=10")
+    xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
+    ylabel("Transitory Load Fluctuation", fontsize = 15)
+    xticks([0.00001, 0.0005, 0.001], fontsize=12)
+    yticks(fontsize=12)
+    legend(fontsize = 12)
+    title("Optimum C = 1", fontsize = 15)
+    tight_layout()
+    return rplusbconstrainedtrackingfigure
+    # savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
+end
+
+
 sel_rel_conj(0.1, 0.00001:0.00001:0.001, -0.0005 )[:,1]
 
 let 
