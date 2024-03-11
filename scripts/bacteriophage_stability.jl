@@ -133,29 +133,6 @@ function brconstrained_stabilitytracking_sine_splitoptimum(bplusrrange, brratio,
     return data
 end
 
-let
-    u0=[0.5]
-    tsend = 500.0*4*pi
-    tspan=(0.0, tsend)
-    smid = -0.0005
-    freq = 0.001
-    brvals = brratio_calc(1.0, 0.0006)
-    par = BacPhageSineForcedPar(b = brvals[1], r=brvals[2], per=0.5, amp=0.4, mid=smid)
-    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-    sol = solve(prob, RadauIIA5())
-    solseries = sol(tsend-4*pi:freq:tsend)
-    selectiondata = [sel_sine(par, t) for t in tsend-4*pi:freq:tsend]
-    seriesoptimum = optimum(selectiondata)
-    optimumdiff = trackoptimum(solseries[1,:], seriesoptimum)
-    optimumdiff0 = splitoptimumdiff("0", optimumdiff, seriesoptimum)
-    optimumdiff1 = splitoptimumdiff("1", optimumdiff, seriesoptimum)
-    test = figure()
-    plot(tsend-4*pi:freq:tsend, optimumdiff)
-    plot(tsend-4*pi:freq:tsend,seriesoptimum)
-    return test
-end
-
-
 function noise_stabilityprep(bval, rval, smid, freq, tsend, reps)
     CVTLdata = zeros(length(reps))
     meanTLdata = zeros(length(reps))
@@ -201,7 +178,7 @@ end
 function time_selectionswitch_b(brange, oldsel, newsel, tvals)
     timedata=zeros(length(brange))
     @threads for bi in eachindex(brange)
-        timedata[bi] = calc_time_selectionswitch(brange[bi], 0.001, oldsel, newsel, tvals)
+        timedata[bi] = calc_time_selectionswitch(brange[bi], 0.0001, oldsel, newsel, tvals)
     end
     return [brange, timedata]
 end
@@ -209,7 +186,7 @@ end
 function time_selectionswitch_r(rrange, oldsel, newsel, tvals)
     timedata=zeros(length(rrange))
     @threads for ri in eachindex(rrange)
-        timedata[ri] = calc_time_selectionswitch(0.001, rrange[ri], oldsel, newsel, tvals)
+        timedata[ri] = calc_time_selectionswitch(0.0001, rrange[ri], oldsel, newsel, tvals)
     end
     return [rrange, timedata]
 end
