@@ -89,6 +89,66 @@ let
     # savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure_meantransitoryload.pdf"))
 end
 
+#prefer to bring sine selection amplitude down to 0.05 - but problems with mean TL numerical solutions when at fixation
+#prefer to bring noise selection standard deviation to 0.005 - works fine for both mean and fluc TL
+#figuring out why there are problems with numerical solutions when at fixation
+#reason is that numerical solution is going above zero - i thought i had a fix for this
+#reason is to do with the solver - but i don't want to do a callback because how much to add and where to place using callback
+
+function brconstrained_stabilitytracking_sine_test(bplusrrange, brratio, smid, freq, numsine)
+    data = zeros(length(bplusrrange), 2)
+    u0=[0.5]
+    tsend = numsine*4*pi
+    tspan=(0.0, tsend)
+    @threads for bri in eachindex(bplusrrange)
+        brvals = brratio_calc(brratio, bplusrrange[bri])
+        par = BacPhageSineForcedPar(b = brvals[1], r=brvals[2], per=0.5, amp=0.05, mid=smid)
+        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+        sol = solve(prob, RadauIIA5())
+        solseries = sol(tsend-4*pi:freq:tsend)
+        selectiondata = [sel_sine(par, t) for t in tsend-4*pi:freq:tsend]
+        seriesoptimum = optimum(selectiondata)
+        optimumdiff = trackoptimum(solseries[1,:], seriesoptimum)
+        data[bri, 1] = bplusrrange[bri]
+        data[bri, 2] = mean(optimumdiff)
+    end
+    return data
+end
+
+brconstrained_stabilitytracking_sine_test(0.00001:0.00005:0.001, 1.0, -0.0005, 0.001, 2000.0)
+
+function numerical_sol_testing(bplusr, brratio, smid, freq, numsine)
+    u0=[0.5]
+    tsend = numsine*4*pi
+    tspan=(0.0, tsend)
+    brvals = brratio_calc(brratio, bplusr)
+    par = BacPhageSineForcedPar(b = brvals[1], r=brvals[2], per=0.5, amp=0.05, mid=smid)
+    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
+    sol = solve(prob, RadauIIA5())
+    solseries = sol(tsend-4*pi:freq:tsend)
+    selectiondata = [sel_sine(par, t) for t in tsend-4*pi:freq:tsend]
+    seriesoptimum = optimum(selectiondata)
+    optimumdiff = trackoptimum(solseries[1,:], seriesoptimum)
+    return optimumdiff
+end
+
+let 
+    bplusr1=0.00086
+    bplusr2=0.00096
+    brratio=1.0
+    smid=-0.0005
+    freq=0.001
+    numsine=2000.0
+    data1=numerical_sol_testing(bplusr1, brratio, smid, freq, numsine)
+    data2=numerical_sol_testing(bplusr2, brratio, smid, freq, numsine)
+    return hcat(data1, data2)
+    # print(mean(data[:,2]))
+    # print(length(data[:,2]))
+    # test = figure()
+    # plot(data[:,1], data[:,2])
+    # return test
+end
+
 #Figure 4 Fluctuations of transitory load
 let 
     data001_sine = brconstrained_stabilitytracking_sine(0.00001:0.00001:0.001, 0.1, -0.0005, 0.001, 500.0)
