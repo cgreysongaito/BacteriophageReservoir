@@ -1,8 +1,3 @@
-include("bacteriophage_commoncode.jl")
-
-#Parameter ranges
-include("bacteriophage_stability.jl")
-
 function range_parameter_br(brratio, bplusrrange)
     brange = zeros(length(bplusrrange))
     rrange = zeros(length(bplusrrange))
@@ -18,13 +13,6 @@ function range_parameter_br(brratio, bplusrrange)
     return hcat(minb, maxb, minr, maxr)
 end
 
-range_parameter_br(0.1, 0.00001:0.0001:0.001)
-range_parameter_br(1.0, 0.00001:0.0001:0.001)
-range_parameter_br(10.0, 0.00001:0.0001:0.001)
-
-0.05*sin(π/2)-0.0005
--0.05*sin(π/2)-0.0005
-
 function sel_noise_range(reps)
     mins = zeros(reps)
     maxs = zeros(reps)
@@ -36,8 +24,6 @@ function sel_noise_range(reps)
     return [minimum(mins), maximum(maxs)]
 end
 
-sel_noise_range(100000)
-
 #Gut responses to environmental variation
 #Sine wave
 function bifurcmid(midrange, tsend)
@@ -47,7 +33,7 @@ function bifurcmid(midrange, tsend)
     @threads for midi in eachindex(midrange)
         par = BacPhageSineForcedPar(mid=midrange[midi])
         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, RadauIIA5())
+        sol = solve(prob, Rodas4P())
         solseries = sol(tsend-1000:1.0:tsend)
         data[midi, 1] = midrange[midi]
         data[midi, 2] = maximum(solseries)
@@ -90,7 +76,7 @@ function bifurcintegral_eigen1_mid(midrange, tsend)
         par = BacPhageSineForcedPar(mid=midrange[midi])
         data[midi, 1] = calc_integral_eigen1(par)
         prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, RadauIIA5())
+        sol = solve(prob, Rodas4P())
         solseries = sol(tsend-1000.0:1.0:tsend)
         data[midi, 2] = maximum(solseries)
         data[midi, 3] = minimum(solseries)

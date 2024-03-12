@@ -5,9 +5,9 @@ end
 
 #Basic model
 @with_kw mutable struct BacPhagePar
-    r = 0.001 #to match niehus 10^-4 top value
+    r = 0.0001 #now matching r and b with combined values to get Neihus 10-4 value
     s = 0.1
-    b = 0.001
+    b = 0.0001
 end
 
 function bacphage!(du, u, p, t,)
@@ -25,7 +25,7 @@ function selection_switch_bacphage(bval, rval, oldsel, newsel, tvals)
     end
     tspan=(0.0, maximum(tvals))
     prob = ODEProblem(bacphage!, u0, tspan, par)
-    sol = solve(prob,RadauIIA5())
+    sol = solve(prob,Rodas4P())
     solseries = sol(tvals)
     return solseries
 end
@@ -107,7 +107,7 @@ end
     r = 0.001 #changed to neihus parameter
     b = 0.001
     per = 0.5
-    amp = 0.4
+    amp = 0.05
     mid = 0.0
     selec::Function = sel_sine
 end
@@ -160,7 +160,7 @@ function bacphage_pert_sol(bval, rval, u0, freq, μ, σ, corr, seed, tsend, tval
 
     cb = PeriodicCallback(pert_cb2, freq, initial_affect = false)
     prob = ODEProblem(bacphage!, [u0], tspan, par)
-    sol = DifferentialEquations.solve(prob, callback = cb, alg=RadauIIA5()) #reltol = 1e-8
+    sol = DifferentialEquations.solve(prob, callback = cb, alg=Rodas4P()) #reltol = 1e-8
     solend = sol(tvals)
     return [solend[1,:], append!([μ], noise[Int64((minimum(tvals) / freq) + 1.0):Int64(tsend / freq)])]
 end

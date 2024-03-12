@@ -9,9 +9,9 @@ let
     tsend = 10000.0
     freq = 0.1
     tspan=(0.0, tsend)
-    par = BacPhageSineForcedPar(b = 0.001, r=0.001, per=0.5, amp=0.4, mid=-0.003)
+    par = BacPhageSineForcedPar(b = 0.001, r=0.001, per=0.5, amp=0.4, mid=-0.003) #keeping amp=0.4 because conceptual figure and easier to see
     prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-    sol = solve(prob, RadauIIA5())
+    sol = solve(prob, Rodas4P())
     solseries = sol(tsend-16.0:freq:tsend)
     sel = [sel_sine(par, t) for t in solseries.t]
     opt = optimum(sel)
@@ -70,7 +70,7 @@ let
     plot(data10_sine[:,1], data10_sine[:,2], color="#39568CFF", label="b/r=10")
     xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
     ylabel("Mean Transitory Load", fontsize = 15)
-    xticks([0.0, 0.001], fontsize=12)
+    xticks([0.0, 0.0005, 0.001], fontsize=12)
     yticks(fontsize=12)
     legend(fontsize = 12)
     title("Sine Wave", fontsize = 15)
@@ -80,73 +80,13 @@ let
     plot(data10_noise[:,1], data10_noise[:,2], color="#39568CFF", label="b/r=10")
     xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
     ylabel("Mean Transitory Load", fontsize = 15)
-    xticks([0.0, 0.001], fontsize=12)
+    xticks([0.0, 0.0005, 0.001], fontsize=12)
     yticks(fontsize=12)
     legend(fontsize = 12)
     title("White Noise", fontsize = 15)
     tight_layout()
-    return rplusbconstrainedtrackingfigure
-    # savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure_meantransitoryload.pdf"))
-end
-
-#prefer to bring sine selection amplitude down to 0.05 - but problems with mean TL numerical solutions when at fixation
-#prefer to bring noise selection standard deviation to 0.005 - works fine for both mean and fluc TL
-#figuring out why there are problems with numerical solutions when at fixation
-#reason is that numerical solution is going above zero - i thought i had a fix for this
-#reason is to do with the solver - but i don't want to do a callback because how much to add and where to place using callback
-
-function brconstrained_stabilitytracking_sine_test(bplusrrange, brratio, smid, freq, numsine)
-    data = zeros(length(bplusrrange), 2)
-    u0=[0.5]
-    tsend = numsine*4*pi
-    tspan=(0.0, tsend)
-    @threads for bri in eachindex(bplusrrange)
-        brvals = brratio_calc(brratio, bplusrrange[bri])
-        par = BacPhageSineForcedPar(b = brvals[1], r=brvals[2], per=0.5, amp=0.05, mid=smid)
-        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, RadauIIA5())
-        solseries = sol(tsend-4*pi:freq:tsend)
-        selectiondata = [sel_sine(par, t) for t in tsend-4*pi:freq:tsend]
-        seriesoptimum = optimum(selectiondata)
-        optimumdiff = trackoptimum(solseries[1,:], seriesoptimum)
-        data[bri, 1] = bplusrrange[bri]
-        data[bri, 2] = mean(optimumdiff)
-    end
-    return data
-end
-
-brconstrained_stabilitytracking_sine_test(0.00001:0.00005:0.001, 1.0, -0.0005, 0.001, 2000.0)
-
-function numerical_sol_testing(bplusr, brratio, smid, freq, numsine)
-    u0=[0.5]
-    tsend = numsine*4*pi
-    tspan=(0.0, tsend)
-    brvals = brratio_calc(brratio, bplusr)
-    par = BacPhageSineForcedPar(b = brvals[1], r=brvals[2], per=0.5, amp=0.05, mid=smid)
-    prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-    sol = solve(prob, RadauIIA5())
-    solseries = sol(tsend-4*pi:freq:tsend)
-    selectiondata = [sel_sine(par, t) for t in tsend-4*pi:freq:tsend]
-    seriesoptimum = optimum(selectiondata)
-    optimumdiff = trackoptimum(solseries[1,:], seriesoptimum)
-    return optimumdiff
-end
-
-let 
-    bplusr1=0.00086
-    bplusr2=0.00096
-    brratio=1.0
-    smid=-0.0005
-    freq=0.001
-    numsine=2000.0
-    data1=numerical_sol_testing(bplusr1, brratio, smid, freq, numsine)
-    data2=numerical_sol_testing(bplusr2, brratio, smid, freq, numsine)
-    return hcat(data1, data2)
-    # print(mean(data[:,2]))
-    # print(length(data[:,2]))
-    # test = figure()
-    # plot(data[:,1], data[:,2])
-    # return test
+    # return rplusbconstrainedtrackingfigure
+    savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure_meantransitoryload.pdf"))
 end
 
 #Figure 4 Fluctuations of transitory load
@@ -164,7 +104,7 @@ let
     plot(data10_sine[:,1], data10_sine[:,3], color="#39568CFF", label="b/r=10")
     xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
     ylabel("Transitory Load Fluctuation", fontsize = 15)
-    xticks([0.00001, 0.0005, 0.001], fontsize=12)
+    xticks([0.0, 0.0005, 0.001], fontsize=12)
     yticks(fontsize=12)
     legend(fontsize = 12)
     title("Sine Wave", fontsize = 15)
@@ -174,13 +114,13 @@ let
     plot(data10_noise[:,1], data10_noise[:,3], color="#39568CFF", label="b/r=10")
     xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
     ylabel("Transitory Load Fluctuation", fontsize = 15)
-    xticks([0.00001, 0.0005, 0.001], fontsize=12)
+    xticks([0.0, 0.0005, 0.001], fontsize=12)
     yticks(fontsize=12)
     legend(fontsize = 12)
     title("White Noise", fontsize = 15)
     tight_layout()
-    return rplusbconstrainedtrackingfigure
-    # savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
+    # return rplusbconstrainedtrackingfigure
+    savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
 end
 
 #Figure 5
@@ -189,7 +129,7 @@ let
     data_decreaseb = time_selectionswitch_b(0.00001:0.000005:0.001, 0.01, -0.05, 0.0:1.0:10000.0)
     data_increaser = time_selectionswitch_r(0.00001:0.000005:0.001, -0.05, 0.01, 0.0:1.0:10000.0)
     data_decreaser = time_selectionswitch_r(0.00001:0.000005:0.001, 0.01, -0.05, 0.0:1.0:10000.0)
-    TLmintime = figure(figsize=(9,7))
+    TLmintime = figure(figsize=(8.5,7))
     plot(data_increaseb[1], data_increaseb[2], color="#73D055FF", linewidth = 3, label="Positive (b)")
     plot(data_decreaseb[1], data_decreaseb[2], color="#440154FF", linewidth = 3, label="Negative (b)")
     plot(data_increaser[1], data_increaser[2], color="#73D055FF", linewidth = 3, label="Positive (r)", linestyle="dashed")
@@ -200,14 +140,22 @@ let
     ylabel("Transitory load minimization time", fontsize = 15)
     ylim(0.0, 1000)
     legend(title = "Optimum C Switch", title_fontsize = 15, fontsize = 12)
-    return TLmintime
-    # savefig(joinpath(abpath(), "figs/TLmintime_selectionswitch.pdf"))
+    # return TLmintime
+    savefig(joinpath(abpath(), "figs/TLmintime_selectionswitch.pdf"))
 end
 
 
 #Supporting Information
 include("bacteriophage_supportinginformation.jl")
 
+range_parameter_br(0.1, 0.00001:0.0001:0.001)
+range_parameter_br(1.0, 0.00001:0.0001:0.001)
+range_parameter_br(10.0, 0.00001:0.0001:0.001)
+
+0.05*sin(π/2)-0.0005
+-0.05*sin(π/2)-0.0005
+
+sel_noise_range(100000)
 
 let 
     bplusrrange = 0.00001:0.00001:0.001
@@ -219,7 +167,8 @@ let
     plot(alpha001data[:,1],alpha001data[:,2], color="#FDE725FF", label="b/r=0.1")
     plot(alpha1data[:,1],alpha1data[:,2],  color="#29AF7FFF", label="b/r=1")
     plot(alpha10data[:,1],alpha10data[:,2], color="#39568CFF", label="b/r=10")
-    xlabel("HGT", fontsize = 15)
+    xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
+    xticks([0.0, 0.0005, 0.001], fontsize=12)
     ylabel("α", fontsize = 15)
     xticks(fontsize=12)
     yticks(fontsize=12)
@@ -233,8 +182,8 @@ end
 #Bifurcation analysis of varying s
 let 
     bifurcval = bifurc(BacPhagePar())
-    st = -0.3
-    en = 0.3 
+    st = -0.05
+    en = 0.05
     srange1 = st:0.0001:bifurcval
     srange2 = bifurcval:0.0001:en
     data1 = [interior_equil(s, BacPhagePar()) for s in srange1]
@@ -244,7 +193,7 @@ let
     plot(srange2, data2, linestyle= "dashed",color = "black")
     ylabel("Ĉ", fontsize = 15)
     xlabel("s", fontsize = 15)
-    xlim(-0.3, 0.3)
+    xlim(-0.05, 0.05)
     ylim(-0.1, 1.1)
     xticks(fontsize = 12)
     yticks(fontsize = 12)
@@ -260,17 +209,17 @@ let
     tsend = 10000.0
     freq = 0.1
     tspan=(0.0, tsend)
-    par1 = BacPhageSineForcedPar(b = 0.001, r=0.001, per=0.5, amp=0.4, mid=-0.03)
+    par1 = BacPhageSineForcedPar(b = 0.0001, r=0.0001, per=0.5, amp=0.05, mid=-0.003)
     prob1 = ODEProblem(bacphage_sine_forced!, u0, tspan, par1)
-    sol1 = solve(prob1, RadauIIA5())
+    sol1 = solve(prob1, Rodas4P())
     solseries1 = sol1(tsend-20.0:freq:tsend)
-    par2 = BacPhageSineForcedPar(b = 0.001, r=0.001, per=0.5, amp=0.4, mid=-0.003)
+    par2 = BacPhageSineForcedPar(b = 0.0001, r=0.0001, per=0.5, amp=0.05, mid=-0.0003)
     prob2 = ODEProblem(bacphage_sine_forced!, u0, tspan, par2)
-    sol2 = solve(prob2, RadauIIA5())
+    sol2 = solve(prob2, Rodas4P())
     solseries2 = sol2(tsend-20.0:freq:tsend)
-    par3 = BacPhageSineForcedPar(b = 0.001, r=0.001, per=0.5, amp=0.4, mid=-0.001)
+    par3 = BacPhageSineForcedPar(b = 0.0001, r=0.0001, per=0.5, amp=0.05, mid=-0.0001)
     prob3 = ODEProblem(bacphage_sine_forced!, u0, tspan, par3)
-    sol3 = solve(prob3, RadauIIA5())
+    sol3 = solve(prob3, Rodas4P())
     solseries3 = sol3(tsend-20.0:freq:tsend)
     patternsfigure = figure(figsize = (7,2))
     subplot(1,3,1)
@@ -303,7 +252,7 @@ bifurcmid_data = bifurcmid(-0.01:0.0001:0.001, 100000.0)
 white_noise_mid_data = bifurc_white_mid(-0.01:0.0001:0.001, 6, 100000.0)
 
 let 
-    par  = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.4, mid=0.0)
+    par  = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.05, mid=0.0)
     bifurcfigure = figure(figsize=(8,3))
     subplot(1,2,1)
     plot(bifurcmid_data[:, 1], bifurcmid_data[:, 2], color="black")
@@ -406,7 +355,7 @@ end
 
 #Lowest C analysis for Mean Transitory Load
 let
-    slow = 0.4*sin(1.5*pi)-.002
+    slow = 0.05*sin(1.5*pi)-.002
     bplusrrange = 0.00001:0.0001:0.004
     data01 = meanTL_lowestC(bplusrrange, 0.1, slow)
     data1 = meanTL_lowestC(bplusrrange, 1, slow)
