@@ -119,8 +119,8 @@ let
     legend(fontsize = 12)
     title("White Noise", fontsize = 15)
     tight_layout()
-    # return rplusbconstrainedtrackingfigure
-    savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
+    return rplusbconstrainedtrackingfigure
+    # savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
 end
 
 #Figure 5
@@ -282,14 +282,14 @@ let
     data001_sine = brconstrained_stabilitytracking_sine_splitoptimum(0.00001:0.00001:0.001, 0.1, -0.0005, 0.001, 500.0)
     data1_sine = brconstrained_stabilitytracking_sine_splitoptimum(0.00001:0.00001:0.001, 1, -0.0005, 0.001, 500.0)
     data10_sine = brconstrained_stabilitytracking_sine_splitoptimum(0.00001:0.00001:0.001, 10, -0.0005, 0.001, 500.0)
-    rplusbconstrainedtrackingfigure = figure(figsize = (8,7))
+    stability_splitoptimum_sine = figure(figsize = (8,7))
     subplot(2,2,1)
     plot(data001_sine[:,1], data001_sine[:,2], color="#FDE725FF", label="b/r=0.1")
     plot(data1_sine[:,1], data1_sine[:,2], color="#29AF7FFF", label="b/r=1")
     plot(data10_sine[:,1], data10_sine[:,2], color="#39568CFF", label="b/r=10")
     xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
     ylabel("Mean Transitory Load", fontsize = 15)
-    xticks([0.0, 0.001], fontsize=12)
+    xticks([0.0, 0.0005, 0.001], fontsize=12)
     yticks(fontsize=12)
     legend(fontsize = 12)
     title("Optimum C = 0", fontsize = 15)
@@ -299,7 +299,7 @@ let
     plot(data10_sine[:,1], data10_sine[:,3], color="#39568CFF", label="b/r=10")
     xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
     ylabel("Transitory Load Fluctuation", fontsize = 15)
-    xticks([0.00001, 0.0005, 0.001], fontsize=12)
+    xticks([0.0, 0.0005, 0.001], fontsize=12)
     yticks(fontsize=12)
     legend(fontsize = 12)
     title("Optimum C = 0", fontsize = 15)
@@ -309,7 +309,7 @@ let
     plot(data10_sine[:,1], data10_sine[:,4], color="#39568CFF", label="b/r=10")
     xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
     ylabel("Mean Transitory Load", fontsize = 15)
-    xticks([0.0, 0.001], fontsize=12)
+    xticks([0.0, 0.0005, 0.001], fontsize=12)
     yticks(fontsize=12)
     legend(fontsize = 12)
     title("Optimum C = 1", fontsize = 15)
@@ -319,19 +319,69 @@ let
     plot(data10_sine[:,1], data10_sine[:,5], color="#39568CFF", label="b/r=10")
     xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
     ylabel("Transitory Load Fluctuation", fontsize = 15)
-    xticks([0.00001, 0.0005, 0.001], fontsize=12)
+    xticks([0.0, 0.0005, 0.001], fontsize=12)
     yticks(fontsize=12)
     legend(fontsize = 12)
     title("Optimum C = 1", fontsize = 15)
     tight_layout()
-    return rplusbconstrainedtrackingfigure
-    # savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
+    return stability_splitoptimum_sine
+    # savefig(joinpath(abpath(), "figs/stability_splitoptimum_sine.pdf"))
+end
+
+let 
+    data001_noise = brconstrained_stabilitytracking_noise_splitoptimum(0.00001:0.00001:0.001, 0.1, -0.0005, 1.0, 10000.0, 100)
+    data1_noise = brconstrained_stabilitytracking_noise_splitoptimum(0.00001:0.00001:0.001, 1.0, -0.0005, 1.0, 10000.0, 100)
+    data10_noise = brconstrained_stabilitytracking_noise_splitoptimum(0.00001:0.00001:0.001, 10.0, -0.0005, 1.0, 10000.0, 100)
+    stability_splitoptimum_noise = figure(figsize = (8,7))
+    subplot(2,2,1)
+    plot(data001_noise[:,1], data001_noise[:,2], color="#FDE725FF", label="b/r=0.1")
+    plot(data1_noise[:,1], data1_noise[:,2], color="#29AF7FFF", label="b/r=1")
+    plot(data10_noise[:,1], data10_noise[:,2], color="#39568CFF", label="b/r=10")
+    xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
+    ylabel("Mean Transitory Load", fontsize = 15)
+    xticks([0.0, 0.0005, 0.001], fontsize=12)
+    yticks(fontsize=12)
+    legend(fontsize = 12)
+    title("Optimum C = 0", fontsize = 15)
+    subplot(2,2,2)
+    plot(data001_noise[:,1], data001_noise[:,3], color="#FDE725FF", label="b/r=0.1")
+    plot(data1_noise[:,1], data1_noise[:,3], color="#29AF7FFF", label="b/r=1")
+    plot(data10_noise[:,1], data10_noise[:,3], color="#39568CFF", label="b/r=10")
+    xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
+    ylabel("Transitory Load Fluctuation", fontsize = 15)
+    xticks([0.0, 0.0005, 0.001], fontsize=12)
+    yticks(fontsize=12)
+    legend(fontsize = 12)
+    title("Optimum C = 0", fontsize = 15)
+    subplot(2,2,3)
+    plot(data001_noise[:,1], data001_noise[:,4], color="#FDE725FF", label="b/r=0.1")
+    plot(data1_noise[:,1], data1_noise[:,4], color="#29AF7FFF", label="b/r=1")
+    plot(data10_noise[:,1], data10_noise[:,4], color="#39568CFF", label="b/r=10")
+    xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
+    ylabel("Mean Transitory Load", fontsize = 15)
+    xticks([0.0, 0.0005, 0.001], fontsize=12)
+    yticks(fontsize=12)
+    legend(fontsize = 12)
+    title("Optimum C = 1", fontsize = 15)
+    subplot(2,2,4)
+    plot(data001_noise[:,1], data001_noise[:,5], color="#FDE725FF", label="b/r=0.1")
+    plot(data1_noise[:,1], data1_noise[:,5], color="#29AF7FFF", label="b/r=1")
+    plot(data10_noise[:,1], data10_noise[:,5], color="#39568CFF", label="b/r=10")
+    xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
+    ylabel("Transitory Load Fluctuation", fontsize = 15)
+    xticks([0.0, 0.0005, 0.001], fontsize=12)
+    yticks(fontsize=12)
+    legend(fontsize = 12)
+    title("Optimum C = 1", fontsize = 15)
+    tight_layout()
+    return stability_splitoptimum_noise
+    # savefig(joinpath(abpath(), "figs/stability_splitoptimum_noise.pdf"))
 end
 
 #Lowest C analysis for Mean Transitory Load
 let
-    slow = 0.05*sin(1.5*pi)-.002
-    bplusrrange = 0.00001:0.0001:0.004
+    slow = 0.1*sin(1.5*pi)-.0005
+    bplusrrange = 0.000001:0.000001:0.001
     data01 = meanTL_lowestC(bplusrrange, 0.1, slow)
     data1 = meanTL_lowestC(bplusrrange, 1, slow)
     data10 = meanTL_lowestC(bplusrrange, 10, slow)
@@ -341,7 +391,7 @@ let
     plot(data01[:,1], data10[:,2], color="#39568CFF", label="b/r=10")
     xlabel("Horizontal Gene Transfer (\$b\$ + \$r\$)", fontsize = 15)
     ylabel("Lowest Ĉ", fontsize = 15)
-    xticks(fontsize=12)
+    xticks([0.0,0.0005,0.001],fontsize=12)
     yticks(fontsize=12)
     legend(fontsize = 12)
     # return lowestCplot

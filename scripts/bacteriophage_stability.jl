@@ -144,7 +144,8 @@ function noise_stabilityprep(bval, rval, smid, freq, tsend, reps)
         seriesoptimum = optimum(solnoise[2])
         optimumdiff = trackoptimum(solnoise[1], seriesoptimum)
         meanTLdata[i] = mean(optimumdiff)
-        CVTLdata[i] = std(optimumdiff)/mean(optimumdiff)
+        # CVTLdata[i] = std(optimumdiff)/mean(optimumdiff)
+        CVTLdata[i] = std(optimumdiff)
         sumTLdata[i] = sum(optimumdiff)
     end
     return [mean(meanTLdata), mean(CVTLdata), mean(sumTLdata)]
@@ -159,6 +160,40 @@ function brconstrained_stabilitytracking_noise(bplusrrange, brratio, smid, freq,
         data[bri, 2] = TLstats[1]
         data[bri, 3] = TLstats[2]
         data[bri, 4] = TLstats[3]
+    end
+    return data
+end
+
+#split optimum for noise
+function noise_stabilityprep_splitoptimum(bval, rval, smid, freq, tsend, reps)
+    CVTLdata0 = zeros(length(reps))
+    CVTLdata1 = zeros(length(reps))
+    meanTLdata0 = zeros(length(reps))
+    meanTLdata1 = zeros(length(reps))
+    for i in 1:length(reps)
+        solnoise = bacphage_pert_sol(bval, rval, 0.5, freq, smid, 0.005, 0.0, i, tsend, tsend-1000.0:1.0:tsend)
+        seriesoptimum = optimum(solnoise[2])
+        optimumdiff = trackoptimum(solnoise[1], seriesoptimum)
+        optimumdiff0 = splitoptimumdiff("0", optimumdiff, seriesoptimum)
+        optimumdiff1 = splitoptimumdiff("1", optimumdiff, seriesoptimum)
+        meanTLdata0[i] = mean(optimumdiff0)
+        meanTLdata1[i] = mean(optimumdiff1)
+        CVTLdata0[i] = std(optimumdiff0)
+        CVTLdata1[i] = std(optimumdiff1)
+    end
+    return [mean(meanTLdata0), mean(CVTLdata0), mean(meanTLdata1), mean(CVTLdata1)]
+end
+
+function brconstrained_stabilitytracking_noise_splitoptimum(bplusrrange, brratio, smid, freq, tsend, reps)
+    data = zeros(length(bplusrrange), 5)
+    @threads for bri in eachindex(bplusrrange)
+        brvals = brratio_calc(brratio, bplusrrange[bri])
+        TLstats = noise_stabilityprep_splitoptimum(brvals[1], brvals[2], smid, freq, tsend, reps)
+        data[bri, 1] = bplusrrange[bri]
+        data[bri, 2] = TLstats[1]
+        data[bri, 3] = TLstats[2]
+        data[bri, 4] = TLstats[3]
+        data[bri, 5] = TLstats[4]
     end
     return data
 end
