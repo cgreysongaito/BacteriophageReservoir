@@ -277,32 +277,6 @@ let
     # savefig(joinpath(abpath(), "figs/conjbacsel_balance_sinewhite.pdf"))
 end
 
-#Eigenvalue analysis of balancing b, r, & s
-bifurcintegral_data = bifurcintegral_eigen1_mid(-0.001:0.0001:0.0001, 100000.0)
-
-let 
-    srange = -0.02:0.01:0.02
-    par  = BacPhageSineForcedPar(b = 0.0001, r=0.0001)
-    eigenb001 = [eigen1(s, par) for s in srange]
-    bifurc_integralfigure = figure(figsize=(8,8))
-    subplot(2,1,1)
-    plot(srange, eigenb001, color="blue", linewidth=3)
-    hlines(0.0, -0.02, 0.02, linewidth=0.5)
-    vlines(bifurc(par), -0.02, 0.02, linewidth=0.5)
-    xlabel("s")
-    ylabel("λ (Ĉ=1)")
-    xlim(-0.01,0.01)
-    subplot(2,1,2)
-    plot(bifurcintegral_data[:, 1], bifurcintegral_data[:, 2], color="black")
-    plot(bifurcintegral_data[:, 1], bifurcintegral_data[:, 3], color="black")
-    vlines(0.0, 0.0, 1.0, linestyles="dashed", color="black")
-    xlabel("λ Integral")
-    ylabel("C(t) min & max")
-    tight_layout()
-    return bifurc_integralfigure
-    # savefig(joinpath(abpath(), "figs/conjbacsel_balance.pdf"))
-end
-
 #SI Figure 4 - Mean Transitory Load and Transitory Load split between 0 and 1 Optimum C
 let 
     data001_sine = brconstrained_stabilitytracking_sine_splitoptimum(0.00001:0.00001:0.001, 0.1, -0.0005, 0.001, 500.0)
