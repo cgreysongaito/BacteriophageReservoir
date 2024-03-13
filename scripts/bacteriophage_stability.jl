@@ -63,7 +63,7 @@ end
 
 
 function brconstrained_stabilitytracking_sine(bplusrrange, brratio, smid, freq, numsine)
-    data = zeros(length(bplusrrange), 4)
+    data = zeros(length(bplusrrange), 3)
     u0=[0.5]
     tsend = numsine*4*pi
     tspan=(0.0, tsend)
@@ -80,7 +80,6 @@ function brconstrained_stabilitytracking_sine(bplusrrange, brratio, smid, freq, 
         data[bri, 1] = bplusrrange[bri]
         data[bri, 2] = mean(optimumdiff)
         data[bri, 3] = sumsqddiff(optimumdiff)
-        data[bri, 4] = sum(optimumdiff)
     end
     return data
 end
@@ -136,38 +135,34 @@ function brconstrained_stabilitytracking_sine_splitoptimum(bplusrrange, brratio,
 end
 
 function noise_stabilityprep(bval, rval, smid, freq, tsend, reps)
-    CVTLdata = zeros(length(reps))
+    sdTLdata = zeros(length(reps))
     meanTLdata = zeros(length(reps))
-    sumTLdata = zeros(length(reps))
     for i in 1:length(reps)
         solnoise = bacphage_pert_sol(bval, rval, 0.5, freq, smid, 0.005, 0.0, i, tsend, tsend-1000.0:1.0:tsend)
         seriesoptimum = optimum(solnoise[2])
         optimumdiff = trackoptimum(solnoise[1], seriesoptimum)
         meanTLdata[i] = mean(optimumdiff)
-        # CVTLdata[i] = std(optimumdiff)/mean(optimumdiff)
-        CVTLdata[i] = std(optimumdiff)
-        sumTLdata[i] = sum(optimumdiff)
+        sdTLdata[i] = std(optimumdiff)
     end
-    return [mean(meanTLdata), mean(CVTLdata), mean(sumTLdata)]
+    return [mean(meanTLdata), mean(sdTLdata)]
 end
 
 function brconstrained_stabilitytracking_noise(bplusrrange, brratio, smid, freq, tsend, reps)
-    data = zeros(length(bplusrrange), 4)
+    data = zeros(length(bplusrrange), 3)
     @threads for bri in eachindex(bplusrrange)
         brvals = brratio_calc(brratio, bplusrrange[bri])
         TLstats = noise_stabilityprep(brvals[1], brvals[2], smid, freq, tsend, reps)
         data[bri, 1] = bplusrrange[bri]
         data[bri, 2] = TLstats[1]
         data[bri, 3] = TLstats[2]
-        data[bri, 4] = TLstats[3]
     end
     return data
 end
 
 #split optimum for noise
 function noise_stabilityprep_splitoptimum(bval, rval, smid, freq, tsend, reps)
-    CVTLdata0 = zeros(length(reps))
-    CVTLdata1 = zeros(length(reps))
+    sdTLdata0 = zeros(length(reps))
+    sdTLdata1 = zeros(length(reps))
     meanTLdata0 = zeros(length(reps))
     meanTLdata1 = zeros(length(reps))
     for i in 1:length(reps)
@@ -178,10 +173,10 @@ function noise_stabilityprep_splitoptimum(bval, rval, smid, freq, tsend, reps)
         optimumdiff1 = splitoptimumdiff("1", optimumdiff, seriesoptimum)
         meanTLdata0[i] = mean(optimumdiff0)
         meanTLdata1[i] = mean(optimumdiff1)
-        CVTLdata0[i] = std(optimumdiff0)
-        CVTLdata1[i] = std(optimumdiff1)
+        sdTLdata0[i] = std(optimumdiff0)
+        sdTLdata1[i] = std(optimumdiff1)
     end
-    return [mean(meanTLdata0), mean(CVTLdata0), mean(meanTLdata1), mean(CVTLdata1)]
+    return [mean(meanTLdata0), mean(sdTLdata0), mean(meanTLdata1), mean(sdTLdata1)]
 end
 
 function brconstrained_stabilitytracking_noise_splitoptimum(bplusrrange, brratio, smid, freq, tsend, reps)
