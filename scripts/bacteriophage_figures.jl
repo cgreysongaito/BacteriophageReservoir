@@ -119,8 +119,8 @@ let
     legend(fontsize = 12)
     title("White Noise", fontsize = 15)
     tight_layout()
-    return rplusbconstrainedtrackingfigure
-    # savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure.pdf"))
+    # return rplusbconstrainedtrackingfigure
+    savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure_TLfluc.pdf"))
 end
 
 #Figure 5
@@ -182,8 +182,8 @@ end
 #Bifurcation analysis of varying s
 let 
     bifurcval = bifurc(BacPhagePar())
-    st = -0.05
-    en = 0.05
+    st = -0.1
+    en = 0.1
     srange1 = st:0.0001:bifurcval
     srange2 = bifurcval:0.0001:en
     data1 = [interior_equil(s, BacPhagePar()) for s in srange1]
@@ -193,9 +193,9 @@ let
     plot(srange2, data2, linestyle= "dashed",color = "black")
     ylabel("Ĉ", fontsize = 15)
     xlabel("s", fontsize = 15)
-    xlim(-0.05, 0.05)
+    xlim(-0.1, 0.1)
     ylim(-0.1, 1.1)
-    xticks(fontsize = 12)
+    xticks([-0.1,-0.05,0.0,0.05,0.1],fontsize = 12)
     yticks(fontsize = 12)
     hlines(1.0, st, bifurcval, linestyle= "dashed", colors= "black")
     hlines(1.0, bifurcval, en, colors= "black")
@@ -244,8 +244,8 @@ let
     yticks([0.0,0.5,1.0])
     xticks([])
     tight_layout()
-    return patternsfigure
-    # savefig(joinpath(abpath(), "figs/patternsfigure.pdf"))
+    # return patternsfigure
+    savefig(joinpath(abpath(), "figs/patternsfigure.pdf"))
 end
 
 bifurcmid_data = bifurcmid(-0.001:0.00001:0.0001, 100000.0)
@@ -273,11 +273,11 @@ let
     xticks([-0.001, -0.0002, 0.0])
     title("White Noise", fontsize = 15)
     tight_layout()
-    return bifurcfigure
-    # savefig(joinpath(abpath(), "figs/conjbacsel_balance_sinewhite.pdf"))
+    # return bifurcfigure
+    savefig(joinpath(abpath(), "figs/conjbacsel_balance_sinewhite.pdf"))
 end
 
-#SI Figure 4 - Mean Transitory Load and Transitory Load split between 0 and 1 Optimum C
+#SI Figure 4 - Mean Transitory Load and Transitory Load split between 0 and 1 Optimum C (Sine)
 let 
     data001_sine = brconstrained_stabilitytracking_sine_splitoptimum(0.00001:0.00001:0.001, 0.1, -0.0005, 0.001, 500.0)
     data1_sine = brconstrained_stabilitytracking_sine_splitoptimum(0.00001:0.00001:0.001, 1, -0.0005, 0.001, 500.0)
@@ -324,10 +324,11 @@ let
     legend(fontsize = 12)
     title("Optimum C = 1", fontsize = 15)
     tight_layout()
-    return stability_splitoptimum_sine
-    # savefig(joinpath(abpath(), "figs/stability_splitoptimum_sine.pdf"))
+    # return stability_splitoptimum_sine
+    savefig(joinpath(abpath(), "figs/stability_splitoptimum_sine.pdf"))
 end
 
+#SI Figure 5 - Mean Transitory Load and Transitory Load split between 0 and 1 Optimum C (Noise)
 let 
     data001_noise = brconstrained_stabilitytracking_noise_splitoptimum(0.00001:0.00001:0.001, 0.1, -0.0005, 1.0, 10000.0, 100)
     data1_noise = brconstrained_stabilitytracking_noise_splitoptimum(0.00001:0.00001:0.001, 1.0, -0.0005, 1.0, 10000.0, 100)
@@ -374,8 +375,8 @@ let
     legend(fontsize = 12)
     title("Optimum C = 1", fontsize = 15)
     tight_layout()
-    return stability_splitoptimum_noise
-    # savefig(joinpath(abpath(), "figs/stability_splitoptimum_noise.pdf"))
+    # return stability_splitoptimum_noise
+    savefig(joinpath(abpath(), "figs/stability_splitoptimum_noise.pdf"))
 end
 
 #Lowest C analysis for Mean Transitory Load

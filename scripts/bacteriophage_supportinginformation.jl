@@ -58,28 +58,10 @@ end
 function bifurc_white_mid(midrange, σ, reps, tend)
     data = zeros(length(midrange), 3)
     @threads for midi in eachindex(midrange)
-        maxminmeans = noise_mid_reps(midrange[midi],σ, 0.0, reps, tend)
+        maxminmeans = noise_mid_reps(midrange[midi], σ, 0.0, reps, tend)
         data[midi, 1] = midrange[midi]
         data[midi, 2] = maxminmeans[1]
         data[midi, 3] = maxminmeans[2]
-    end
-    return data
-end
-
-#Eigenvalues integral balancing (gut responses to environmental variation)
-#eigen integral bifurcation #C=1 #mid
-function bifurcintegral_eigen1_mid(midrange, tsend)
-    data = zeros(length(midrange), 3)
-    u0=[0.5]
-    tspan=(0.0, tsend)
-    @threads for midi in eachindex(midrange)
-        par = BacPhageSineForcedPar(mid=midrange[midi])
-        data[midi, 1] = calc_integral_eigen1(par)
-        prob = ODEProblem(bacphage_sine_forced!, u0, tspan, par)
-        sol = solve(prob, Rodas4P())
-        solseries = sol(tsend-1000.0:1.0:tsend)
-        data[midi, 2] = maximum(solseries)
-        data[midi, 3] = minimum(solseries)
     end
     return data
 end

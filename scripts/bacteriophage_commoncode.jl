@@ -6,7 +6,7 @@ end
 #Basic model
 @with_kw mutable struct BacPhagePar
     r = 0.0001 #now matching r and b with combined values to get Neihus 10-4 value
-    s = -0.0002
+    s = -0.0005
     b = 0.0001
 end
 
