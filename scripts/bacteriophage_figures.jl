@@ -152,10 +152,10 @@ range_parameter_br(0.1, 0.00001:0.0001:0.001)
 range_parameter_br(1.0, 0.00001:0.0001:0.001)
 range_parameter_br(10.0, 0.00001:0.0001:0.001)
 
-0.05*sin(π/2)-0.0005
--0.05*sin(π/2)-0.0005
+0.1*sin(π/2)-0.0005
+-0.1*sin(π/2)-0.0005
 
-sel_noise_range(100000)
+sel_noise_range(-0.0005, 0.015, 100000) #setting noise standard deviation to 0.015
 
 let 
     bplusrrange = 0.00001:0.00001:0.001
@@ -209,15 +209,15 @@ let
     tsend = 10000.0
     freq = 0.1
     tspan=(0.0, tsend)
-    par1 = BacPhageSineForcedPar(b = 0.0001, r=0.0001, per=0.5, amp=0.05, mid=-0.003)
+    par1 = BacPhageSineForcedPar(b = 0.0001, r=0.0001, per=0.5, amp=0.1, mid=-0.003)
     prob1 = ODEProblem(bacphage_sine_forced!, u0, tspan, par1)
     sol1 = solve(prob1, Rodas4P())
     solseries1 = sol1(tsend-20.0:freq:tsend)
-    par2 = BacPhageSineForcedPar(b = 0.0001, r=0.0001, per=0.5, amp=0.05, mid=-0.0003)
+    par2 = BacPhageSineForcedPar(b = 0.0001, r=0.0001, per=0.5, amp=0.1, mid=-0.0003)
     prob2 = ODEProblem(bacphage_sine_forced!, u0, tspan, par2)
     sol2 = solve(prob2, Rodas4P())
     solseries2 = sol2(tsend-20.0:freq:tsend)
-    par3 = BacPhageSineForcedPar(b = 0.0001, r=0.0001, per=0.5, amp=0.05, mid=-0.0001)
+    par3 = BacPhageSineForcedPar(b = 0.0001, r=0.0001, per=0.5, amp=0.1, mid=0.01)
     prob3 = ODEProblem(bacphage_sine_forced!, u0, tspan, par3)
     sol3 = solve(prob3, Rodas4P())
     solseries3 = sol3(tsend-20.0:freq:tsend)
@@ -228,31 +228,31 @@ let
     xlabel("Time", fontsize=15)
     ylim(0.0,1.05)
     yticks([0.0,0.5,1.0])
-    tick_params(axis="x", which="both", bottom=False, labelbottom=False)
+    xticks([])
     subplot(1,3,2)
     plot(solseries2.t, solseries2.u, color="black")
     ylabel("C(t)", fontsize=15)
     xlabel("Time", fontsize=15)
     ylim(0.0,1.05)
     yticks([0.0,0.5,1.0])
-    tick_params(axis="x", which="both", bottom=False, labelbottom=False)
+    xticks([])
     subplot(1,3,3)
     plot(solseries3.t, solseries3.u, color="black")
     ylabel("C(t)", fontsize=15)
     xlabel("Time", fontsize=15)
     ylim(0.0,1.05)
     yticks([0.0,0.5,1.0])
-    tick_params(axis="x", which="both", bottom=False, labelbottom=False)
+    xticks([])
     tight_layout()
     return patternsfigure
     # savefig(joinpath(abpath(), "figs/patternsfigure.pdf"))
 end
 
-bifurcmid_data = bifurcmid(-0.01:0.0001:0.001, 100000.0)
-white_noise_mid_data = bifurc_white_mid(-0.01:0.0001:0.001, 6, 100000.0)
+bifurcmid_data = bifurcmid(-0.001:0.00001:0.0001, 100000.0)
+white_noise_mid_data = bifurc_white_mid(-0.001:0.00001:0.0001, 0.015, 6, 100000.0)
 
 let 
-    par  = BacPhageSineForcedPar(b = 0.001, per=0.5, amp=0.05, mid=0.0)
+    par  = BacPhageSineForcedPar(b = 0.0001, r=0.0001, per=0.5, amp=0.1, mid=0.0)
     bifurcfigure = figure(figsize=(8,3))
     subplot(1,2,1)
     plot(bifurcmid_data[:, 1], bifurcmid_data[:, 2], color="black")
@@ -261,7 +261,7 @@ let
     xlabel("Average selection", fontsize = 15)
     ylabel("C(t) min & max", fontsize = 15)
     yticks([0.0, 0.5,1.0], fontsize = 12)
-    xticks([-0.010, -0.002, 0.0])
+    xticks([-0.001, -0.0002, 0.0])
     title("Sine Wave", fontsize = 15)
     subplot(1,2,2)
     plot(white_noise_mid_data[:, 1], white_noise_mid_data[:, 2], color="black")
@@ -270,7 +270,7 @@ let
     xlabel("Average selection", fontsize = 15)
     ylabel("Mean C(t) min & max", fontsize = 15)
     yticks([0.0, 0.5,1.0], fontsize = 12)
-    xticks([-0.010, -0.002, 0.0])
+    xticks([-0.001, -0.0002, 0.0])
     title("White Noise", fontsize = 15)
     tight_layout()
     return bifurcfigure
@@ -278,20 +278,21 @@ let
 end
 
 #Eigenvalue analysis of balancing b, r, & s
-bifurcintegral_data = bifurcintegral_eigen1_mid(-0.01:0.0001:0.001, 100000.0)
+bifurcintegral_data = bifurcintegral_eigen1_mid(-0.001:0.0001:0.0001, 100000.0)
 
 let 
     srange = -0.02:0.01:0.02
-    par  = BacPhageSineForcedPar(b = 0.001)
+    par  = BacPhageSineForcedPar(b = 0.0001, r=0.0001)
     eigenb001 = [eigen1(s, par) for s in srange]
     bifurc_integralfigure = figure(figsize=(8,8))
-    subplot(1,2,1)
+    subplot(2,1,1)
     plot(srange, eigenb001, color="blue", linewidth=3)
     hlines(0.0, -0.02, 0.02, linewidth=0.5)
     vlines(bifurc(par), -0.02, 0.02, linewidth=0.5)
     xlabel("s")
     ylabel("λ (Ĉ=1)")
-    subplot(1,2,2)
+    xlim(-0.01,0.01)
+    subplot(2,1,2)
     plot(bifurcintegral_data[:, 1], bifurcintegral_data[:, 2], color="black")
     plot(bifurcintegral_data[:, 1], bifurcintegral_data[:, 3], color="black")
     vlines(0.0, 0.0, 1.0, linestyles="dashed", color="black")

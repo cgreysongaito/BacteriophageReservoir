@@ -6,7 +6,7 @@ end
 #Basic model
 @with_kw mutable struct BacPhagePar
     r = 0.0001 #now matching r and b with combined values to get Neihus 10-4 value
-    s = 0.1
+    s = -0.0002
     b = 0.0001
 end
 
@@ -104,10 +104,10 @@ end
 
 #With sine environmental selection
 @with_kw mutable struct BacPhageSineForcedPar
-    r = 0.001 #changed to neihus parameter
-    b = 0.001
+    r = 0.0001 #now matching r and b with combined values to get Neihus 10-4 value
+    b = 0.0001
     per = 0.5
-    amp = 0.05
+    amp = 0.1
     mid = 0.0
     selec::Function = sel_sine
 end
