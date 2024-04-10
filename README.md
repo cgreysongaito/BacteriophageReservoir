@@ -1,4 +1,4 @@
-Lysogenic bacteriophage as a gene reservoir in gut ecosystems
+Bacteriophages drive rapid adaptation and stability in variable gut microbiomes
 =========
 
 #### Authors
