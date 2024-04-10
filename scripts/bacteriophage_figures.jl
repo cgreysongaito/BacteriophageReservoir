@@ -89,7 +89,7 @@ let
     savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure_meantransitoryload.pdf"))
 end
 
-#Figure 4 Fluctuations of transitory load
+#Figure 4 Fluctuating transitory load
 let 
     data001_sine = brconstrained_stabilitytracking_sine(0.00001:0.00001:0.001, 0.1, -0.0005, 0.001, 500.0)
     data1_sine = brconstrained_stabilitytracking_sine(0.00001:0.00001:0.001, 1, -0.0005, 0.001, 500.0)
@@ -123,7 +123,7 @@ let
     savefig(joinpath(abpath(), "figs/rplusbconstrainedtrackingfigure_TLfluc.pdf"))
 end
 
-#Figure 5
+#Figure 5 Transitory load minimization time
 let 
     data_increaseb = time_selectionswitch_b(0.00001:0.000005:0.001, -0.05, 0.01, 0.0:1.0:10000.0)
     data_decreaseb = time_selectionswitch_b(0.00001:0.000005:0.001, 0.01, -0.05, 0.0:1.0:10000.0)
